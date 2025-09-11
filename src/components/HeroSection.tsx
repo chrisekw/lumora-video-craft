@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Play, Sparkles, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroMockup from "@/assets/hero-mockup.jpg";
 
 const HeroSection = () => {
@@ -17,11 +18,13 @@ const HeroSection = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-4">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Start Free
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <Link to="/auth">
+              <Button variant="hero" size="lg" className="text-lg px-8 py-4">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Start Free
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
             <Button variant="glass" size="lg" className="text-lg px-8 py-4">
               <Play className="w-5 h-5 mr-2" />
               Watch Demo
