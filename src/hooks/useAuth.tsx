@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Handle redirect after successful auth
         if (session?.user && event === 'SIGNED_IN') {
           setTimeout(() => {
-            navigate('/');
+            navigate('/dashboard');
           }, 0);
         }
       }
