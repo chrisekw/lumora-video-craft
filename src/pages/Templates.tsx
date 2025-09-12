@@ -58,16 +58,16 @@ const Templates = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
-          <main className="p-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 font-mono">Templates</h1>
-              <p className="text-muted-foreground font-mono">
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-mono">Templates</h1>
+              <p className="text-sm sm:text-base text-muted-foreground font-mono">
                 Choose from our collection of professional video templates
               </p>
             </div>
 
             {/* Category Filter */}
-            <div className="flex gap-3 mb-8">
+            <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2">
               {categories.map((category) => (
                 <Button
                   key={category}
@@ -81,7 +81,7 @@ const Templates = () => {
             </div>
 
             {/* Templates Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {templates.map((template) => (
                 <Card 
                   key={template.id} 

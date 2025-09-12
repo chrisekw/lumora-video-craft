@@ -39,31 +39,31 @@ const Dashboard = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
-          <main className="p-8">
+          <main className="p-4 sm:p-6 lg:p-8">
             {/* Welcome Section */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 font-mono">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-mono">
                 Hi {user?.email?.split('@')[0] || 'User'} 👋 Ready to create?
               </h1>
-              <p className="text-muted-foreground font-mono">
+              <p className="text-sm sm:text-base text-muted-foreground font-mono">
                 Light up your brand with instant video content
               </p>
             </div>
 
             {/* New Project Button */}
-            <div className="mb-8">
-              <Button size="lg" className="text-lg px-8 py-6 rounded-2xl shadow-glow">
-                <Plus className="w-6 h-6 mr-3" />
+            <div className="mb-6 sm:mb-8">
+              <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-2xl shadow-glow">
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 New Project
               </Button>
             </div>
 
             {/* Recent Projects */}
             <div>
-              <h2 className="text-xl font-semibold mb-6 font-mono">Recent Projects</h2>
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 font-mono">Recent Projects</h2>
               
               {recentProjects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {recentProjects.map((project) => (
                     <Card 
                       key={project.id} 
@@ -84,12 +84,12 @@ const Dashboard = () => {
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-4">
-                        <CardTitle className="text-lg font-semibold mb-2 font-mono">
+                      <CardContent className="p-3 sm:p-4">
+                        <CardTitle className="text-base sm:text-lg font-semibold mb-2 font-mono line-clamp-2">
                           {project.title}
                         </CardTitle>
-                        <CardDescription className="flex items-center text-sm font-mono">
-                          <Clock className="w-4 h-4 mr-1" />
+                        <CardDescription className="flex items-center text-xs sm:text-sm font-mono">
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           {project.createdAt}
                         </CardDescription>
                       </CardContent>
@@ -97,14 +97,14 @@ const Dashboard = () => {
                   ))}
                 </div>
               ) : (
-                <Card className="rounded-2xl p-8 text-center">
+                <Card className="rounded-2xl p-6 sm:p-8 text-center">
                   <div className="text-muted-foreground font-mono">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-                      <Plus className="w-8 h-8" />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+                      <Plus className="w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-                    <p className="mb-4">Create your first video project to get started</p>
-                    <Button variant="outline" className="rounded-2xl">
+                    <h3 className="text-base sm:text-lg font-semibold mb-2">No projects yet</h3>
+                    <p className="text-sm sm:text-base mb-4">Create your first video project to get started</p>
+                    <Button variant="outline" className="w-full sm:w-auto rounded-2xl">
                       <Plus className="w-4 h-4 mr-2" />
                       Create Project
                     </Button>

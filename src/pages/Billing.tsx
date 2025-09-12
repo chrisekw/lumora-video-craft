@@ -73,10 +73,10 @@ const Billing = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
-          <main className="p-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 font-mono">Billing & Plans</h1>
-              <p className="text-muted-foreground font-mono">
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-mono">Billing & Plans</h1>
+              <p className="text-sm sm:text-base text-muted-foreground font-mono">
                 Manage your subscription and billing preferences
               </p>
             </div>
@@ -119,9 +119,9 @@ const Billing = () => {
             </Card>
 
             {/* Pricing Plans */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-6 font-mono">Choose Your Plan</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 font-mono">Choose Your Plan</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 {plans.map((plan) => (
                   <Card 
                     key={plan.name} 
