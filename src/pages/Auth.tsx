@@ -1,20 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Mail, Lock, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: ''
   });
+  
+  const { user, signUp, signIn, signInWithGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -23,10 +35,33 @@ const Auth = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Auth logic will be implemented here
-    console.log(isLogin ? 'Login' : 'Signup', formData);
+    setLoading(true);
+
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        await signIn(formData.email, formData.password);
+      } else {
+        await signUp(formData.email, formData.password);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,6 +98,8 @@ const Auth = () => {
               variant="outline" 
               className="w-full border-border/50 hover:bg-muted/50 transition-smooth"
               size="lg"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -166,9 +203,10 @@ const Auth = () => {
                 variant="hero" 
                 size="lg" 
                 className="w-full mt-6"
+                disabled={loading}
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                {isLogin ? 'Sign in' : 'Create account'}
+                {loading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Create account')}
               </Button>
             </form>
             
