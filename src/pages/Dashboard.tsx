@@ -1,12 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Clock, Play } from "lucide-react";
+import { Plus, Clock, Play, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
+import MobileHeader from "@/components/MobileHeader";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Mock recent projects data
   const recentProjects = [
@@ -39,6 +42,7 @@ const Dashboard = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
+          <MobileHeader title="Dashboard" />
           <main className="p-4 sm:p-6 lg:p-8">
             {/* Welcome Section */}
             <div className="mb-6 sm:mb-8">
@@ -52,8 +56,12 @@ const Dashboard = () => {
 
             {/* New Project Button */}
             <div className="mb-6 sm:mb-8">
-              <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-2xl shadow-glow">
-                <Plus className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/create-project')}
+                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-2xl shadow-glow bg-gradient-primary text-primary-foreground hover:shadow-card transition-all"
+              >
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 New Project
               </Button>
             </div>
@@ -104,7 +112,11 @@ const Dashboard = () => {
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold mb-2">No projects yet</h3>
                     <p className="text-sm sm:text-base mb-4">Create your first video project to get started</p>
-                    <Button variant="outline" className="w-full sm:w-auto rounded-2xl">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate('/create-project')}
+                      className="w-full sm:w-auto rounded-2xl"
+                    >
                       <Plus className="w-4 h-4 mr-2" />
                       Create Project
                     </Button>

@@ -1,4 +1,5 @@
 import AppSidebar from "@/components/AppSidebar";
+import MobileHeader from "@/components/MobileHeader";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,7 @@ const Billing = () => {
         <AppSidebar />
         
         <SidebarInset className="flex-1">
+          <MobileHeader title="Billing" />
           <main className="p-4 sm:p-6 lg:p-8">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-mono">Billing & Plans</h1>

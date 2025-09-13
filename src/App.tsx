@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import CreateProject from "./pages/CreateProject";
 import Templates from "./pages/Templates";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/create-project" element={<CreateProject />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/settings" element={<Settings />} />
