@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
+import { useToast } from "@/components/ui/use-toast";
 
 const projectMethods = [
   {
@@ -57,12 +58,48 @@ const projectMethods = [
 
 const CreateProject = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
 
   const handleMethodSelect = (methodId: string) => {
     setSelectedMethod(methodId);
-    // For now, just show selection - will implement actual flows later
-    console.log(`Selected method: ${methodId}`);
+    
+    // Navigate to specific method page
+    switch (methodId) {
+      case 'paste-url':
+        navigate('/create-project/url-clone');
+        break;
+      case 'upload-sample':
+        // Future implementation
+        toast({
+          title: "Coming Soon",
+          description: "Video upload feature will be available soon!",
+        });
+        break;
+      case 'prompt-video':
+        // Future implementation
+        toast({
+          title: "Coming Soon",
+          description: "Prompt to video feature will be available soon!",
+        });
+        break;
+      case 'ugc-template':
+        // Future implementation
+        toast({
+          title: "Coming Soon",
+          description: "UGC template feature will be available soon!",
+        });
+        break;
+      case 'explainer-video':
+        // Future implementation
+        toast({
+          title: "Coming Soon",
+          description: "Explainer video feature will be available soon!",
+        });
+        break;
+      default:
+        break;
+    }
   };
 
   return (
