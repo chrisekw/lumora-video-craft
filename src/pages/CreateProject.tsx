@@ -70,32 +70,16 @@ const CreateProject = () => {
         navigate('/create-project/url-clone');
         break;
       case 'upload-sample':
-        // Future implementation
-        toast({
-          title: "Coming Soon",
-          description: "Video upload feature will be available soon!",
-        });
+        navigate('/create-project/video-clone');
         break;
       case 'prompt-video':
-        // Future implementation
-        toast({
-          title: "Coming Soon",
-          description: "Prompt to video feature will be available soon!",
-        });
+        navigate('/create-project/prompt-to-video');
         break;
       case 'ugc-template':
-        // Future implementation
-        toast({
-          title: "Coming Soon",
-          description: "UGC template feature will be available soon!",
-        });
+        navigate('/create-project/ugc-creator');
         break;
       case 'explainer-video':
-        // Future implementation
-        toast({
-          title: "Coming Soon",
-          description: "Explainer video feature will be available soon!",
-        });
+        navigate('/create-project/explainer-video');
         break;
       default:
         break;

@@ -16,6 +16,10 @@ import URLCloneInput from "./pages/URLCloneInput";
 import URLCloneProcessing from "./pages/URLCloneProcessing";
 import URLCloneCustomize from "./pages/URLCloneCustomize";
 import URLCloneGenerate from "./pages/URLCloneGenerate";
+import VideoCloneGenerator from "./pages/VideoCloneGenerator";
+import PromptToVideo from "./pages/PromptToVideo";
+import UGCVideoCreator from "./pages/UGCVideoCreator";
+import ExplainerVideoGenerator from "./pages/ExplainerVideoGenerator";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +39,10 @@ const App = () => (
             <Route path="/create-project/url-clone/processing" element={<URLCloneProcessing />} />
             <Route path="/create-project/url-clone/customize" element={<URLCloneCustomize />} />
             <Route path="/create-project/url-clone/generate" element={<URLCloneGenerate />} />
+            <Route path="/create-project/video-clone" element={<VideoCloneGenerator />} />
+            <Route path="/create-project/prompt-to-video" element={<PromptToVideo />} />
+            <Route path="/create-project/ugc-creator" element={<UGCVideoCreator />} />
+            <Route path="/create-project/explainer-video" element={<ExplainerVideoGenerator />} />
             <Route path="/templates" element={<Templates />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/settings" element={<Settings />} />
