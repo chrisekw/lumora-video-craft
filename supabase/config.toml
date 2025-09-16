@@ -2,3 +2,15 @@ project_id = "hipolqjthriiwdzfxpdd"
 
 [functions.scrape-website]
 verify_jwt = true
+
+[functions.generate-prompt-video]
+verify_jwt = false
+
+[functions.clone-video-style]
+verify_jwt = false
+
+[functions.generate-ugc-video] 
+verify_jwt = false
+
+[functions.create-explainer-video]
+verify_jwt = false
