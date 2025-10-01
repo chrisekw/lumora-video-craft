@@ -1,5 +1,8 @@
 import { Separator } from "@/components/ui/separator";
 import { Github, Twitter, Linkedin, Youtube } from "lucide-react";
+import PrivacyPolicy from "./legal/PrivacyPolicy";
+import TermsConditions from "./legal/TermsConditions";
+import ContentGuidelines from "./legal/ContentGuidelines";
 
 const Footer = () => {
   return (
@@ -59,13 +62,10 @@ const Footer = () => {
           <div className="text-muted-foreground font-mono text-sm">
             © 2024 Lumora. All rights reserved.
           </div>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-muted-foreground hover:text-primary transition-smooth font-mono text-sm">
-              Privacy Policy
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-primary transition-smooth font-mono text-sm">
-              Terms of Service
-            </a>
+          <div className="flex flex-wrap gap-4 md:gap-6 mt-4 md:mt-0 justify-center md:justify-end">
+            <PrivacyPolicy />
+            <TermsConditions />
+            <ContentGuidelines />
           </div>
         </div>
       </div>

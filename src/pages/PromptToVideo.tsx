@@ -70,9 +70,9 @@ const PromptToVideo = () => {
         .from('projects')
         .insert({
           title: `Prompt Video: ${prompt.substring(0, 50)}...`,
-          type: 'prompt_to_video',
+          type: 'prompt_video',
           user_id: user.id,
-          status: 'generating',
+          status: 'processing',
           video_data: {
             prompt,
             videoStyle,
