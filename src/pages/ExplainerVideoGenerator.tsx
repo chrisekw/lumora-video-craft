@@ -12,6 +12,7 @@ import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingAnimation from "@/components/LoadingAnimation";
 import { 
   ArrowLeft, 
   BarChart3, 
@@ -97,17 +98,23 @@ const ExplainerVideoGenerator = () => {
     setIsGenerating(true);
 
     try {
-      let narrationPath = null;
+      let customNarrationUrl = null;
       if (customNarration) {
         const timestamp = Date.now();
         const userId = user.id;
-        narrationPath = `${userId}/narration/${timestamp}_${customNarration.name}`;
+        const narrationPath = `${userId}/narration/${timestamp}_${customNarration.name}`;
         
         const { error: uploadError } = await supabase.storage
           .from('videos')
           .upload(narrationPath, customNarration);
         
         if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(narrationPath);
+        
+        customNarrationUrl = publicUrl;
       }
 
       // Create project record
@@ -120,7 +127,6 @@ const ExplainerVideoGenerator = () => {
           script,
           animationStyle,
           voiceoverStyle,
-          customNarration: narrationPath,
           includeMusic,
           createdAt: new Date().toISOString()
         }
@@ -134,29 +140,53 @@ const ExplainerVideoGenerator = () => {
 
       if (projectError) throw projectError;
 
-      // Simulate video generation process
-      setTimeout(() => {
-        setGeneratedVideo('/placeholder.svg'); // Mock video URL
-        setIsGenerating(false);
+      // Call edge function to generate video
+      const { data, error } = await supabase.functions.invoke('create-explainer-video', {
+        body: {
+          script,
+          animationStyle,
+          voiceoverStyle: voiceoverStyle || 'none',
+          customNarrationUrl,
+          includeMusic,
+          projectId: project.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.videoUrl) {
+        setGeneratedVideo(data.videoUrl);
         
-        // Update project status
-        supabase
+        // Update project with video URL
+        await supabase
           .from('projects')
-          .update({ status: 'completed' })
+          .update({ 
+            status: 'completed',
+            video_data: {
+              ...projectData.video_data,
+              videoUrl: data.videoUrl,
+              voiceoverUrl: data.voiceoverUrl,
+              completedAt: new Date().toISOString()
+            }
+          })
           .eq('id', project.id);
 
         toast({
           title: "Explainer Video Generated Successfully",
           description: "Your animated explainer video is ready for preview",
         });
-      }, 7000);
+      } else {
+        throw new Error('Video generation failed');
+      }
+
+      setIsGenerating(false);
 
     } catch (error) {
       console.error('Error generating video:', error);
       setIsGenerating(false);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate video. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to generate video. Please try again.",
         variant: "destructive",
       });
     }
@@ -368,21 +398,11 @@ const ExplainerVideoGenerator = () => {
                   </Button>
 
                   {isGenerating && (
-                    <Card className="shadow-elegant">
-                      <CardContent className="p-6">
-                        <div className="text-center space-y-4">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
-                            <BarChart3 className="w-6 h-6 text-primary-foreground" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold mb-2">Creating Your Explainer Video</h3>
-                            <p className="text-sm text-muted-foreground">
-                              AI is generating animations, icons, text overlays, voiceover synthesis, and background music...
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <LoadingAnimation
+                      stage="generating"
+                      progress={50}
+                      message="AI is generating animations, icons, text overlays, voiceover synthesis, and background music..."
+                    />
                   )}
                 </div>
               ) : (

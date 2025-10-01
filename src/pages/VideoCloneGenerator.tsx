@@ -12,6 +12,7 @@ import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingAnimation from "@/components/LoadingAnimation";
 import { 
   ArrowLeft, 
   Upload, 
@@ -134,16 +135,32 @@ const VideoCloneGenerator = () => {
       const sampleVideoPath = `${userId}/samples/${timestamp}_${sampleVideo.name}`;
       await uploadFile(sampleVideo, sampleVideoPath);
 
-      let logoPath = null;
+      const { data: { publicUrl: sampleVideoUrl } } = supabase.storage
+        .from('videos')
+        .getPublicUrl(sampleVideoPath);
+
+      let logoUrl = null;
       if (logo) {
-        logoPath = `${userId}/logos/${timestamp}_${logo.name}`;
+        const logoPath = `${userId}/logos/${timestamp}_${logo.name}`;
         await uploadFile(logo, logoPath);
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(logoPath);
+        
+        logoUrl = publicUrl;
       }
 
-      let clipPath = null;
+      let clipUrl = null;
       if (shortClip) {
-        clipPath = `${userId}/clips/${timestamp}_${shortClip.name}`;
+        const clipPath = `${userId}/clips/${timestamp}_${shortClip.name}`;
         await uploadFile(shortClip, clipPath);
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(clipPath);
+        
+        clipUrl = publicUrl;
       }
 
       // Create project record
@@ -153,9 +170,6 @@ const VideoCloneGenerator = () => {
         type: 'video_upload',
         status: 'processing',
         video_data: {
-          sampleVideoPath,
-          logoPath,
-          clipPath,
           contentText,
           resolution,
           aspectRatio,
@@ -171,29 +185,54 @@ const VideoCloneGenerator = () => {
 
       if (projectError) throw projectError;
 
-      // Simulate video generation process
-      setTimeout(() => {
-        setGeneratedVideo('/placeholder.svg'); // Mock video URL
-        setIsGenerating(false);
+      // Call edge function to generate video
+      const { data, error } = await supabase.functions.invoke('clone-video-style', {
+        body: {
+          sampleVideoUrl,
+          contentText,
+          logoUrl,
+          clipUrl,
+          resolution,
+          aspectRatio,
+          projectId: project.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.videoUrl) {
+        setGeneratedVideo(data.videoUrl);
         
-        // Update project status
-        supabase
+        // Update project with video URL
+        await supabase
           .from('projects')
-          .update({ status: 'completed' })
+          .update({ 
+            status: 'completed',
+            video_data: {
+              ...projectData.video_data,
+              videoUrl: data.videoUrl,
+              styleAnalysis: data.styleAnalysis,
+              completedAt: new Date().toISOString()
+            }
+          })
           .eq('id', project.id);
 
         toast({
           title: "Video Generated Successfully",
           description: "Your cloned video is ready for preview",
         });
-      }, 5000);
+      } else {
+        throw new Error('Video generation failed');
+      }
+
+      setIsGenerating(false);
 
     } catch (error) {
       console.error('Error generating video:', error);
       setIsGenerating(false);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate video. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to generate video. Please try again.",
         variant: "destructive",
       });
     }
@@ -384,6 +423,14 @@ const VideoCloneGenerator = () => {
                       </>
                     )}
                   </Button>
+
+                  {isGenerating && (
+                    <LoadingAnimation
+                      stage="analyzing"
+                      progress={50}
+                      message="AI is analyzing the sample video style and generating your new video with the same look and feel..."
+                    />
+                  )}
                 </div>
               ) : (
                 /* Video Preview */

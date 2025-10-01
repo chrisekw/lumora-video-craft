@@ -12,6 +12,7 @@ import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import LoadingAnimation from "@/components/LoadingAnimation";
 import { 
   ArrowLeft, 
   Users, 
@@ -118,17 +119,23 @@ const UGCVideoCreator = () => {
     setIsGenerating(true);
 
     try {
-      let logoPath = null;
+      let logoUrl = null;
       if (brandLogo) {
         const timestamp = Date.now();
         const userId = user.id;
-        logoPath = `${userId}/logos/${timestamp}_${brandLogo.name}`;
+        const logoPath = `${userId}/logos/${timestamp}_${brandLogo.name}`;
         
         const { error: uploadError } = await supabase.storage
           .from('videos')
           .upload(logoPath, brandLogo);
         
         if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(logoPath);
+        
+        logoUrl = publicUrl;
       }
 
       // Create project record
@@ -141,7 +148,6 @@ const UGCVideoCreator = () => {
           characterType,
           script,
           voiceStyle,
-          brandLogo: logoPath,
           brandColor,
           watermark,
           createdAt: new Date().toISOString()
@@ -156,29 +162,53 @@ const UGCVideoCreator = () => {
 
       if (projectError) throw projectError;
 
-      // Simulate video generation process
-      setTimeout(() => {
-        setGeneratedVideo('/placeholder.svg'); // Mock video URL
-        setIsGenerating(false);
+      // Call edge function to generate video
+      const { data, error } = await supabase.functions.invoke('generate-ugc-video', {
+        body: {
+          characterType,
+          script,
+          voiceStyle,
+          brandColor,
+          logoUrl,
+          includeWatermark: !!watermark,
+          projectId: project.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success && data.videoUrl) {
+        setGeneratedVideo(data.videoUrl);
         
-        // Update project status
-        supabase
+        // Update project with video URL
+        await supabase
           .from('projects')
-          .update({ status: 'completed' })
+          .update({ 
+            status: 'completed',
+            video_data: {
+              ...projectData.video_data,
+              videoUrl: data.videoUrl,
+              completedAt: new Date().toISOString()
+            }
+          })
           .eq('id', project.id);
 
         toast({
           title: "UGC Video Generated Successfully",
           description: "Your user-generated content video is ready for preview",
         });
-      }, 6000);
+      } else {
+        throw new Error('Video generation failed');
+      }
+
+      setIsGenerating(false);
 
     } catch (error) {
       console.error('Error generating video:', error);
       setIsGenerating(false);
       toast({
         title: "Generation Failed",
-        description: "Unable to generate video. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to generate video. Please try again.",
         variant: "destructive",
       });
     }
@@ -402,21 +432,11 @@ const UGCVideoCreator = () => {
                   </Button>
 
                   {isGenerating && (
-                    <Card className="shadow-elegant">
-                      <CardContent className="p-6">
-                        <div className="text-center space-y-4">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center animate-pulse">
-                            <Users className="w-6 h-6 text-primary-foreground" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold mb-2">Creating Your UGC Video</h3>
-                            <p className="text-sm text-muted-foreground">
-                              AI is generating your avatar, adding voice synthesis, captions, emojis, and background scenes...
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <LoadingAnimation
+                      stage="generating"
+                      progress={50}
+                      message="AI is generating your avatar, adding voice synthesis, captions, emojis, and background scenes..."
+                    />
                   )}
                 </div>
               ) : (
