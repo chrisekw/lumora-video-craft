@@ -19,14 +19,18 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, style, music, projectId }: GenerateVideoRequest = await req.json();
+    const body = await req.json();
+    const { prompt, style, music, projectId } = body;
     
-    console.log('Generating video for project:', projectId);
+    console.log('=== GENERATE PROMPT VIDEO REQUEST ===');
+    console.log('Project ID:', projectId);
     console.log('Prompt:', prompt);
     console.log('Style:', style);
     console.log('Music:', music);
+    console.log('Request body:', JSON.stringify(body));
 
     if (!prompt || !projectId) {
+      console.error('Missing required fields');
       return new Response(
         JSON.stringify({ error: 'Missing required fields: prompt and projectId' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -35,8 +39,14 @@ serve(async (req) => {
 
     const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
     if (!REPLICATE_API_KEY) {
-      throw new Error('REPLICATE_API_KEY not configured');
+      console.error('REPLICATE_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'REPLICATE_API_KEY not configured. Please add your Replicate API key in the Supabase dashboard.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    
+    console.log('API keys verified successfully');
 
     // Step 1: Generate video using Replicate API
     console.log('Starting video generation with Replicate...');

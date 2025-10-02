@@ -63,24 +63,24 @@ const plans = [
 
 const PricingSection = () => {
   return (
-    <section id="pricing" className="py-20 px-6 bg-gradient-subtle">
+    <section id="pricing" className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-subtle">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-mono mb-4">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-mono mb-4 px-2">
             Simple, transparent <span className="gradient-text">pricing</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono px-4">
             Choose the perfect plan for your needs. Upgrade or downgrade at any time.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {plans.map((plan, index) => (
             <Card 
               key={index}
               className={`relative bg-card border shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl ${
                 plan.popular 
-                  ? 'border-primary/50 shadow-glow scale-105' 
+                  ? 'border-primary/50 shadow-glow md:scale-105' 
                   : 'border-border/50'
               }`}
             >

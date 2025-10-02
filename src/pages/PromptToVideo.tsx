@@ -101,6 +101,8 @@ const PromptToVideo = () => {
       setGenerationProgress(30);
 
       // Call the real API
+      console.log('Calling edge function with:', { prompt, style: videoStyle, music: musicStyle, projectId: project.id });
+      
       const { data: videoResult, error: videoError } = await supabase.functions.invoke('generate-prompt-video', {
         body: {
           prompt,
@@ -110,7 +112,16 @@ const PromptToVideo = () => {
         }
       });
 
-      if (videoError) throw videoError;
+      console.log('Edge function response:', { videoResult, videoError });
+
+      if (videoError) {
+        console.error('Edge function error:', videoError);
+        throw new Error(videoError.message || 'Failed to generate video');
+      }
+
+      if (!videoResult || videoResult.error) {
+        throw new Error(videoResult?.error || 'No video URL returned from generation');
+      }
 
       // Stage 3: Rendering
       setGenerationStage("rendering");

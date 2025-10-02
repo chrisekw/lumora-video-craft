@@ -31,18 +31,18 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-20 px-6">
+    <section className="py-12 sm:py-20 px-4 sm:px-6">
       <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold font-mono mb-4">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-mono mb-4 px-2">
             Loved by <span className="gradient-text">creators worldwide</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-mono">
+          <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto font-mono px-4">
             Join thousands of creators who are already transforming their content strategy with Lumora.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {testimonials.map((testimonial, index) => (
             <Card 
               key={index}

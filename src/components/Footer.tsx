@@ -7,9 +7,9 @@ import ContentGuidelines from "./legal/ContentGuidelines";
 const Footer = () => {
   return (
     <footer className="bg-card border-t border-border/50">
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+          <div className="col-span-1 sm:col-span-2 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-glow">
                 <span className="text-white font-bold text-lg font-mono">L</span>
@@ -56,13 +56,13 @@ const Footer = () => {
           </div>
         </div>
         
-        <Separator className="my-8" />
+        <Separator className="my-6 sm:my-8" />
         
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="text-muted-foreground font-mono text-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-muted-foreground font-mono text-xs sm:text-sm text-center sm:text-left">
             © 2024 Lumora. All rights reserved.
           </div>
-          <div className="flex flex-wrap gap-4 md:gap-6 mt-4 md:mt-0 justify-center md:justify-end">
+          <div className="flex flex-wrap gap-3 sm:gap-4 md:gap-6 justify-center sm:justify-end">
             <PrivacyPolicy />
             <TermsConditions />
             <ContentGuidelines />
