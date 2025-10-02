@@ -153,6 +153,17 @@ const PromptToVideo = () => {
         })
         .eq('id', project.id);
 
+      // Send notification
+      await supabase.functions.invoke('send-notification', {
+        body: {
+          userId: user.id,
+          type: 'project_completed',
+          title: 'Video Generated Successfully',
+          message: `Your video "${prompt.substring(0, 50)}..." is ready!`,
+          link: '/prompt-to-video'
+        }
+      });
+
       toast({
         title: "Video generated successfully!",
         description: "Your video is ready for preview and editing.",
@@ -161,6 +172,20 @@ const PromptToVideo = () => {
     } catch (error) {
       console.error('Error generating video:', error);
       setIsGenerating(false);
+      
+      // Send failure notification
+      if (currentProjectId && user) {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            userId: user.id,
+            type: 'project_failed',
+            title: 'Video Generation Failed',
+            message: 'There was an error generating your video. Please try again.',
+            link: '/prompt-to-video'
+          }
+        });
+      }
+      
       toast({
         title: "Generation failed",
         description: error.message || "There was an error generating your video. Please try again.",

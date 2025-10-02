@@ -17,6 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const { user, signOut } = useAuth();
@@ -91,25 +92,30 @@ const Header = () => {
           </Sheet>
         
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-2xl hidden sm:flex">
-                  <User className="w-4 h-4 mr-2" />
-                  <span className="max-w-[120px] truncate">{user.email}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem className="font-mono">
-                  <User className="w-4 h-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="font-mono text-destructive">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <>
+              <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-2xl hidden sm:flex">
+                    <User className="w-4 h-4 mr-2" />
+                    <span className="max-w-[120px] truncate">{user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild className="font-mono cursor-pointer">
+                    <Link to="/dashboard" className="flex items-center">
+                      <User className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="font-mono text-destructive cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           ) : (
             <>
               <Link to="/auth" className="hidden sm:block">

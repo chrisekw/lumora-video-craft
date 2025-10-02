@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      notification_preferences: {
+        Row: {
+          email_notifications: boolean | null
+          id: string
+          marketing_emails: boolean | null
+          push_notifications: boolean | null
+          updated_at: string | null
+          user_id: string
+          weekly_reports: boolean | null
+        }
+        Insert: {
+          email_notifications?: boolean | null
+          id?: string
+          marketing_emails?: boolean | null
+          push_notifications?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          weekly_reports?: boolean | null
+        }
+        Update: {
+          email_notifications?: boolean | null
+          id?: string
+          marketing_emails?: boolean | null
+          push_notifications?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          weekly_reports?: boolean | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read: boolean | null
+          read_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean | null
+          read_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean | null
+          read_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -88,7 +154,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      notification_type:
+        | "project_completed"
+        | "project_failed"
+        | "export_ready"
+        | "account_update"
+        | "system_message"
+        | "payment_success"
+        | "payment_failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +288,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      notification_type: [
+        "project_completed",
+        "project_failed",
+        "export_ready",
+        "account_update",
+        "system_message",
+        "payment_success",
+        "payment_failed",
+      ],
+    },
   },
 } as const
