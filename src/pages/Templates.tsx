@@ -87,10 +87,10 @@ const Templates = () => {
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
-                  className="rounded-2xl hover:shadow-card transition-all duration-300 cursor-pointer group"
+                  className="rounded-2xl hover:shadow-card transition-all duration-300 cursor-pointer group w-full"
                 >
                   <CardHeader className="p-0 relative">
-                    <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden">
+                    <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden w-full">
                       <img 
                         src={template.thumbnail} 
                         alt={template.title}
@@ -114,9 +114,9 @@ const Templates = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4">
+                  <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-lg font-semibold font-mono">
+                      <CardTitle className="text-base sm:text-lg font-semibold font-mono">
                         {template.title}
                       </CardTitle>
                       <div className="flex items-center text-sm text-muted-foreground">
@@ -124,10 +124,10 @@ const Templates = () => {
                         {template.rating}
                       </div>
                     </div>
-                    <CardDescription className="text-sm mb-4 font-mono">
+                    <CardDescription className="text-xs sm:text-sm mb-3 sm:mb-4 font-mono">
                       {template.description}
                     </CardDescription>
-                    <Button className="w-full rounded-2xl font-mono" size="sm">
+                    <Button className="w-full rounded-2xl font-mono text-xs sm:text-sm" size="sm">
                       Use Template
                     </Button>
                   </CardContent>

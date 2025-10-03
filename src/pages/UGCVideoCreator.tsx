@@ -69,22 +69,19 @@ const UGCVideoCreator = () => {
     setIsGeneratingScript(true);
 
     try {
-      // Simulate AI script generation
-      setTimeout(() => {
-        const sampleScripts = {
-          "realistic-human": "Hey everyone! I just discovered this amazing product and I had to share it with you. As someone who's tried everything on the market, I can honestly say this is a game-changer. The results speak for themselves - I've seen incredible improvements in just the first week!",
-          "cartoon": "Woah! This is absolutely incredible! I'm literally mind-blown by how awesome this is! You guys NEED to check this out - it's like nothing I've ever seen before. Trust me, you're going to thank me later for showing you this!",
-          "ai-influencer": "Analyzing all the data and reviews, this product consistently delivers exceptional results. Based on my research and testing protocols, I can confidently recommend this to optimize your daily routine. The metrics don't lie - this is the upgrade you've been looking for."
-        };
-        
-        setScript(sampleScripts[characterType as keyof typeof sampleScripts] || sampleScripts["realistic-human"]);
-        setIsGeneratingScript(false);
-        
-        toast({
-          title: "Script Generated",
-          description: "AI has created a UGC script tailored to your character type",
-        });
-      }, 2000);
+      const sampleScripts = {
+        "realistic-human": "Hey everyone! I just discovered this amazing product and I had to share it with you. As someone who's tried everything on the market, I can honestly say this is a game-changer. The results speak for themselves - I've seen incredible improvements in just the first week!",
+        "cartoon": "Woah! This is absolutely incredible! I'm literally mind-blown by how awesome this is! You guys NEED to check this out - it's like nothing I've ever seen before. Trust me, you're going to thank me later for showing you this!",
+        "ai-influencer": "Analyzing all the data and reviews, this product consistently delivers exceptional results. Based on my research and testing protocols, I can confidently recommend this to optimize your daily routine. The metrics don't lie - this is the upgrade you've been looking for."
+      };
+      
+      setScript(sampleScripts[characterType as keyof typeof sampleScripts] || sampleScripts["realistic-human"]);
+      setIsGeneratingScript(false);
+      
+      toast({
+        title: "Script Generated",
+        description: "AI has created a UGC script tailored to your character type",
+      });
 
     } catch (error) {
       console.error('Error generating script:', error);

@@ -23,30 +23,49 @@ const plans = [
   {
     name: "Pro",
     description: "For serious content creators",
-    price: "$29",
+    price: "$25",
     period: "per month",
     icon: Zap,
     features: [
-      "20 projects per month",
+      "50 points per month",
       "All premium templates",
       "4K exports",
       "No watermark",
       "Priority support",
-      "Advanced AI features",
-      "Team collaboration"
+      "Advanced AI features"
     ],
     cta: "Start Pro Trial",
     variant: "hero" as const,
     popular: true
   },
   {
-    name: "Enterprise",
-    description: "For teams and agencies",
+    name: "Creator",
+    description: "For professional creators",
     price: "$99",
     period: "per month",
     icon: Crown,
     features: [
-      "Unlimited projects",
+      "200 points per month",
+      "All premium templates",
+      "4K exports",
+      "No watermark",
+      "Priority support",
+      "Advanced AI features",
+      "Team collaboration",
+      "API access"
+    ],
+    cta: "Upgrade to Creator",
+    variant: "premium" as const,
+    popular: false
+  },
+  {
+    name: "Studio",
+    description: "For teams and agencies",
+    price: "$299",
+    period: "per month",
+    icon: Crown,
+    features: [
+      "Unlimited points",
       "Custom templates",
       "White-label exports",
       "API access",
@@ -74,7 +93,7 @@ const PricingSection = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto">
           {plans.map((plan, index) => (
             <Card 
               key={index}

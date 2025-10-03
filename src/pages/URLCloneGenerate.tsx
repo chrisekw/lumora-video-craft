@@ -86,31 +86,49 @@ const URLCloneGenerate = () => {
       setStatus('generating');
       setProgress(10);
 
-      // Simulate video generation process
-      const intervals = [
-        { delay: 1500, progress: 25, message: "Creating video scenes..." },
-        { delay: 2000, progress: 50, message: "Adding voiceover..." },
-        { delay: 1500, progress: 75, message: "Applying visual effects..." },
-        { delay: 1000, progress: 90, message: "Finalizing video..." },
-        { delay: 500, progress: 100, message: "Video generation complete!" }
-      ];
+      const videoData = project.video_data as any;
+      
+      // Call the generate-prompt-video edge function with extracted content
+      const prompt = `${videoData.title}. ${videoData.description}. ${videoData.content}`;
+      
+      setProgress(30);
+      
+      const { data: videoResult, error: videoError } = await supabase.functions.invoke('generate-prompt-video', {
+        body: {
+          prompt: prompt.slice(0, 1000), // Limit prompt length
+          style: videoData.colorScheme || 'cinematic',
+          music: 'upbeat',
+          projectId: project.id
+        }
+      });
 
-      for (const interval of intervals) {
-        await new Promise(resolve => setTimeout(resolve, interval.delay));
-        setProgress(interval.progress);
+      if (videoError) {
+        console.error('Video generation error:', videoError);
+        throw new Error(videoError.message || 'Failed to generate video');
       }
+
+      if (!videoResult || videoResult.error) {
+        throw new Error(videoResult?.error || 'No video URL returned from generation');
+      }
+
+      setProgress(90);
 
       // Update project status
       await supabase
         .from('projects')
         .update({
           status: 'completed',
-          thumbnail_url: '/placeholder.svg'
+          video_data: {
+            ...videoData,
+            videoUrl: videoResult.videoUrl,
+            completedAt: new Date().toISOString()
+          }
         })
         .eq('id', project.id);
 
+      setProgress(100);
       setStatus('completed');
-      setVideoUrl('/placeholder.svg'); // Mock video URL
+      setVideoUrl(videoResult.videoUrl);
       
       toast({
         title: "Video Generated Successfully",
@@ -122,7 +140,7 @@ const URLCloneGenerate = () => {
       setStatus('error');
       toast({
         title: "Generation Failed",
-        description: "Unable to generate video. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to generate video. Please try again.",
         variant: "destructive",
       });
     }

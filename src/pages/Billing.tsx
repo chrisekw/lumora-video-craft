@@ -33,34 +33,54 @@ const Billing = () => {
     },
     {
       name: "Pro",
-      price: "$29",
+      price: "$25",
       period: "month",
       description: "For creators and small businesses",
       features: [
-        "20 projects per month",
+        "50 points per month",
         "All premium templates",
         "No watermark",
         "1080p export quality",
         "Priority support",
-        "Custom branding"
+        "Advanced AI features"
       ],
       buttonText: "Upgrade to Pro",
       isPopular: true,
       disabled: false
     },
     {
-      name: "Enterprise",
+      name: "Creator",
       price: "$99",
+      period: "month",
+      description: "For professional creators",
+      features: [
+        "200 points per month",
+        "All premium templates",
+        "No watermark",
+        "4K export quality",
+        "Priority support",
+        "Advanced AI features",
+        "Team collaboration",
+        "API access"
+      ],
+      buttonText: "Upgrade to Creator",
+      isPopular: false,
+      disabled: false
+    },
+    {
+      name: "Studio",
+      price: "$299",
       period: "month",
       description: "For teams and agencies",
       features: [
-        "Unlimited projects",
+        "Unlimited points",
         "All templates & features",
         "4K export quality",
         "Team collaboration",
         "API access",
         "Dedicated support",
-        "White-label solution"
+        "White-label solution",
+        "Custom integrations"
       ],
       buttonText: "Contact Sales",
       isPopular: false,
@@ -123,7 +143,7 @@ const Billing = () => {
             {/* Pricing Plans */}
             <div className="mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 font-mono">Choose Your Plan</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {plans.map((plan) => (
                   <Card 
                     key={plan.name} 

@@ -66,39 +66,40 @@ const URLCloneProcessing = () => {
       if (projectError) throw projectError;
       setProjectId(project.id);
 
-      // Simulate extraction process
       setStatus('extracting');
       setProgress(10);
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setProgress(40);
+      // Call the scrape-website edge function
+      const { data: scrapeData, error: scrapeError } = await supabase.functions.invoke('scrape-website', {
+        body: { url }
+      });
 
+      if (scrapeError) throw scrapeError;
+
+      setProgress(50);
       setStatus('analyzing');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setProgress(70);
 
-      // Mock extracted content (in real implementation, this would come from Firecrawl)
-      const mockContent: ExtractedContent = {
-        title: `Content from ${new URL(url).hostname}`,
-        description: "Extracted description from the website with key information and compelling content that will be used to create an engaging video.",
-        content: "This is the main content extracted from the website. It includes key points, important information, and relevant details that will be transformed into a video format.",
-        images: [
-          "/placeholder.svg",
-          "/placeholder.svg"
-        ],
+      if (!scrapeData || !scrapeData.success) {
+        throw new Error('Failed to extract website content');
+      }
+
+      const extractedContent: ExtractedContent = {
+        title: scrapeData.data.title || `Content from ${new URL(url).hostname}`,
+        description: scrapeData.data.description || "",
+        content: scrapeData.data.content || "",
+        images: scrapeData.data.images || [],
         url: url
       };
 
-      setExtractedContent(mockContent);
       setProgress(100);
+      setExtractedContent(extractedContent);
       setStatus('completed');
 
       // Update project with extracted content
       await supabase
         .from('projects')
         .update({
-          video_data: mockContent as any,
+          video_data: extractedContent as any,
           status: 'draft'
         })
         .eq('id', project.id);
@@ -113,7 +114,7 @@ const URLCloneProcessing = () => {
       setStatus('error');
       toast({
         title: "Extraction Failed",
-        description: "Unable to extract content from the website. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to extract content from the website. Please try again.",
         variant: "destructive",
       });
     }
