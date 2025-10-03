@@ -83,14 +83,14 @@ const Templates = () => {
             </div>
 
             {/* Templates Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
                   className="rounded-2xl hover:shadow-card transition-all duration-300 cursor-pointer group w-full"
                 >
                   <CardHeader className="p-0 relative">
-                    <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden w-full">
+                    <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden w-full min-h-[200px]">
                       <img 
                         src={template.thumbnail} 
                         alt={template.title}

@@ -54,11 +54,16 @@ serve(async (req) => {
     if (!customNarrationUrl && voiceoverStyle !== 'none') {
       console.log('Generating AI voiceover...');
       
-      const voiceMapping = {
+      const voiceMapping: Record<string, string> = {
+        'professional-male': '21m00Tcm4TlvDq8ikWAM',
         'professional_male': '21m00Tcm4TlvDq8ikWAM',
+        'professional-female': 'EXAVITQu4vr4xnSDxMaL',
         'professional_female': 'EXAVITQu4vr4xnSDxMaL',
+        'friendly-male': 'TX3LPaxmHKxFdv7VOQHJ',
         'friendly_male': 'TX3LPaxmHKxFdv7VOQHJ',
+        'friendly-female': 'XB0fDUnXU5powFXDhCwa',
         'friendly_female': 'XB0fDUnXU5powFXDhCwa',
+        'narrator': 'onwK4e9ZLuTAKqWW03F9',
         'authoritative': 'onwK4e9ZLuTAKqWW03F9'
       };
 
@@ -95,13 +100,19 @@ serve(async (req) => {
     // Step 2: Generate explainer video with animations
     console.log('Generating explainer video with animations...');
     
-    const animationPrompts = {
+    const animationPrompts: Record<string, string> = {
+      '2d-flat': 'Modern 2D flat design animation, clean icons, minimal style, smooth transitions',
       '2d_flat': 'Modern 2D flat design animation, clean icons, minimal style, smooth transitions',
+      'motion-graphics': 'Professional motion graphics, dynamic text, infographic style, corporate feel',
       'motion_graphics': 'Professional motion graphics, dynamic text, infographic style, corporate feel',
-      'whiteboard': 'Whiteboard animation style, hand-drawn elements, sketch-like appearance, educational feel'
+      'whiteboard': 'Whiteboard animation style, hand-drawn elements, sketch-like appearance, educational feel',
+      'isometric': 'Isometric 3D perspective animation with depth, modern architectural style',
+      'character-driven': 'Character-driven narrative animation with personas and storytelling'
     };
 
-    const videoPrompt = `Create an explainer video with ${animationPrompts[animationStyle]}. 
+    const animationDescription = animationPrompts[animationStyle] || animationPrompts['2d-flat'];
+    
+    const videoPrompt = `Create an explainer video with ${animationDescription}. 
     Content to explain: "${script}". 
     Style: Educational, professional, engaging explainer video with animated icons, text overlays, and smooth transitions. 
     Include visual metaphors and diagrams that support the explanation. 

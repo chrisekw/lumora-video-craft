@@ -6,35 +6,32 @@ import { useNavigate } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Mock recent projects data
-  const recentProjects = [
-    {
-      id: 1,
-      title: "Product Demo Video",
-      thumbnail: "/placeholder.svg",
-      createdAt: "2 hours ago",
-      duration: "2:30"
+  // Fetch real projects from database
+  const { data: recentProjects = [], isLoading } = useQuery({
+    queryKey: ['projects', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      return data || [];
     },
-    {
-      id: 2,
-      title: "Social Media Ad",
-      thumbnail: "/placeholder.svg",
-      createdAt: "1 day ago",
-      duration: "0:15"
-    },
-    {
-      id: 3,
-      title: "Explainer Video",
-      thumbnail: "/placeholder.svg",
-      createdAt: "3 days ago",
-      duration: "1:45"
-    }
-  ];
+    enabled: !!user,
+  });
 
   return (
     <SidebarProvider>
@@ -70,7 +67,21 @@ const Dashboard = () => {
             <div>
               <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 font-mono">Recent Projects</h2>
               
-              {recentProjects.length > 0 ? (
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="rounded-2xl">
+                      <CardHeader className="p-0">
+                        <div className="relative aspect-video bg-muted rounded-t-2xl animate-pulse" />
+                      </CardHeader>
+                      <CardContent className="p-3 sm:p-4 space-y-2">
+                        <div className="h-5 bg-muted rounded animate-pulse" />
+                        <div className="h-4 bg-muted rounded w-2/3 animate-pulse" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : recentProjects.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {recentProjects.map((project) => (
                     <Card 
@@ -79,16 +90,22 @@ const Dashboard = () => {
                     >
                       <CardHeader className="p-0">
                         <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden">
-                          <img 
-                            src={project.thumbnail} 
-                            alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                          {project.thumbnail_url ? (
+                            <img 
+                              src={project.thumbnail_url} 
+                              alt={project.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-accent/20">
+                              <Play className="w-12 h-12 text-primary" />
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                             <Play className="w-12 h-12 text-white" />
                           </div>
-                          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">
-                            {project.duration}
+                          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono capitalize">
+                            {project.status}
                           </div>
                         </div>
                       </CardHeader>
@@ -98,7 +115,7 @@ const Dashboard = () => {
                         </CardTitle>
                         <CardDescription className="flex items-center text-xs sm:text-sm font-mono">
                           <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                          {project.createdAt}
+                          {formatDistanceToNow(new Date(project.created_at), { addSuffix: true })}
                         </CardDescription>
                       </CardContent>
                     </Card>
