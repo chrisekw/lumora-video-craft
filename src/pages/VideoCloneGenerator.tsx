@@ -273,7 +273,13 @@ const VideoCloneGenerator = () => {
                 </p>
               </div>
 
-              {!generatedVideo ? (
+              {isGenerating ? (
+                <LoadingAnimation
+                  stage="analyzing"
+                  progress={50}
+                  message="AI is analyzing the sample video style and generating your new video with the same look and feel..."
+                />
+              ) : !generatedVideo ? (
                 <div className="grid gap-6">
                   {/* Video Upload */}
                   <Card className="shadow-elegant">
@@ -424,13 +430,6 @@ const VideoCloneGenerator = () => {
                     )}
                   </Button>
 
-                  {isGenerating && (
-                    <LoadingAnimation
-                      stage="analyzing"
-                      progress={50}
-                      message="AI is analyzing the sample video style and generating your new video with the same look and feel..."
-                    />
-                  )}
                 </div>
               ) : (
                 /* Video Preview */
