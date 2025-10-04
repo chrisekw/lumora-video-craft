@@ -29,6 +29,7 @@ const URLCloneCustomize = () => {
   // Customization options
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [script, setScript] = useState("");
   const [voiceStyle, setVoiceStyle] = useState("professional");
   const [colorScheme, setColorScheme] = useState("default");
   const [duration, setDuration] = useState("auto");
@@ -58,6 +59,7 @@ const URLCloneCustomize = () => {
       const videoData = data.video_data as any;
       setTitle(videoData?.title || data.title);
       setDescription(videoData?.description || "");
+      setScript(videoData?.script || "");
       setLoading(false);
     } catch (error) {
       console.error('Error loading project:', error);
@@ -84,6 +86,7 @@ const URLCloneCustomize = () => {
         ...(project.video_data as any),
         title,
         description,
+        script,
         voiceStyle,
         colorScheme,
         duration,
@@ -189,10 +192,25 @@ const URLCloneCustomize = () => {
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Customize the video description and key points"
-                        rows={4}
+                        placeholder="Brief description of the product/service"
+                        rows={2}
                         className="resize-none"
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="script" className="font-mono">Video Script</Label>
+                      <Textarea
+                        id="script"
+                        value={script}
+                        onChange={(e) => setScript(e.target.value)}
+                        placeholder="Video narration script (will be used for voiceover)"
+                        rows={6}
+                        className="resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        This script will be used to generate the video voiceover
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

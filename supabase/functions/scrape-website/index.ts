@@ -17,6 +17,7 @@ interface ScrapeResponse {
     title: string;
     description: string;
     content: string;
+    script: string;
     images: string[];
     url: string;
   };
@@ -56,20 +57,86 @@ serve(async (req) => {
       );
     }
 
-    // Simulate website scraping (in production, this would use Firecrawl or similar service)
-    // For now, we'll extract basic info from the URL and create mock content
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname;
-    const pathname = urlObj.pathname;
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ success: false, error: 'AI service not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const mockData = {
-      title: `Content from ${hostname}`,
-      description: `Extracted content from ${hostname}${pathname}. This comprehensive overview covers the key information and insights found on this webpage, providing valuable content that can be transformed into engaging video format.`,
-      content: `This is the main content extracted from ${url}. The webpage contains important information about ${hostname}'s offerings, key features, and relevant details that visitors find valuable. This content serves as the foundation for creating compelling video narratives that capture the essence of the original webpage while presenting it in an engaging, visual format that resonates with modern audiences.`,
-      images: [
-        '/placeholder.svg',
-        '/placeholder.svg'
-      ],
+    // Fetch the actual website content
+    console.log('Fetching website content...');
+    const websiteResponse = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; LumoraBot/1.0)'
+      }
+    });
+
+    if (!websiteResponse.ok) {
+      throw new Error(`Failed to fetch website: ${websiteResponse.status}`);
+    }
+
+    const htmlContent = await websiteResponse.text();
+    console.log(`Fetched ${htmlContent.length} characters from website`);
+
+    // Use OpenAI to extract and analyze content
+    console.log('Analyzing content with AI...');
+    const analysisPrompt = `Analyze this webpage HTML and extract key information for creating a promotional video. Extract:
+1. Product/Service Name (title)
+2. Brief Description (1-2 sentences)
+3. Key Features and Benefits (main content points)
+4. Generate a compelling 30-60 second video script that highlights the product/service
+
+HTML Content (first 8000 chars):
+${htmlContent.slice(0, 8000)}
+
+Return ONLY a valid JSON object with this structure:
+{
+  "title": "extracted title",
+  "description": "brief description",
+  "content": "key features and benefits as bullet points",
+  "script": "engaging video script for narration"
+}`;
+
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a content extraction expert. Extract webpage information and create video scripts. Return only valid JSON.' 
+          },
+          { role: 'user', content: analysisPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      }),
+    });
+
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text();
+      console.error('OpenAI API error:', errorText);
+      throw new Error('Failed to analyze content with AI');
+    }
+
+    const openaiData = await openaiResponse.json();
+    const extractedData = JSON.parse(openaiData.choices[0].message.content);
+
+    console.log('Content extracted:', extractedData);
+
+    const processedData = {
+      title: extractedData.title || new URL(url).hostname,
+      description: extractedData.description || 'Promotional video content',
+      content: extractedData.content || '',
+      script: extractedData.script || extractedData.description,
+      images: [],
       url: url
     };
 
@@ -78,7 +145,7 @@ serve(async (req) => {
       const { error: updateError } = await supabaseClient
         .from('projects')
         .update({
-          video_data: mockData,
+          video_data: processedData,
           status: 'draft'
         })
         .eq('id', projectId);
@@ -88,11 +155,11 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Successfully scraped ${url}`);
+    console.log(`Successfully scraped and analyzed ${url}`);
 
     const response: ScrapeResponse = {
       success: true,
-      data: mockData
+      data: processedData
     };
 
     return new Response(

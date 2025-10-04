@@ -88,8 +88,9 @@ const URLCloneGenerate = () => {
 
       const videoData = project.video_data as any;
       
-      // Call the generate-prompt-video edge function with extracted content
-      const prompt = `${videoData.title}. ${videoData.description}. ${videoData.content}`;
+      // Use the generated script for video creation
+      const script = videoData.script || `${videoData.title}. ${videoData.description}`;
+      const prompt = `Create a promotional video for: ${videoData.title}. ${script}`;
       
       setProgress(30);
       
@@ -98,6 +99,7 @@ const URLCloneGenerate = () => {
           prompt: prompt.slice(0, 1000), // Limit prompt length
           style: videoData.colorScheme || 'cinematic',
           music: 'upbeat',
+          voiceoverText: script,
           projectId: project.id
         }
       });

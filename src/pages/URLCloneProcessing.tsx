@@ -229,8 +229,8 @@ const URLCloneProcessing = () => {
                             <p className="text-sm">{extractedContent.description}</p>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-muted-foreground">Images Found:</p>
-                            <p className="text-sm">{extractedContent.images.length} images extracted</p>
+                            <p className="text-sm font-medium text-muted-foreground">Generated Script:</p>
+                            <p className="text-sm bg-muted/50 p-2 rounded">{(extractedContent as any).script}</p>
                           </div>
                         </div>
                       </div>
