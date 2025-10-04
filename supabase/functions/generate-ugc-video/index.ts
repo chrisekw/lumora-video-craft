@@ -126,9 +126,25 @@ serve(async (req) => {
     });
 
     if (!replicateResponse.ok) {
-      const error = await replicateResponse.text();
-      console.error('Replicate API error:', error);
-      throw new Error(`Failed to start video generation: ${error}`);
+      const errorText = await replicateResponse.text();
+      console.error('Replicate API error:', errorText);
+      
+      let errorMessage = 'Failed to start video generation';
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (replicateResponse.status === 402) {
+          errorMessage = 'Insufficient Replicate API credits. Please add credits at https://replicate.com/account/billing';
+        } else {
+          errorMessage = errorJson.detail || errorJson.title || errorMessage;
+        }
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: replicateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const predictionData = await replicateResponse.json();
