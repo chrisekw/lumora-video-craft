@@ -468,13 +468,102 @@ const Settings = () => {
                       <CardTitle className="font-mono">API Keys</CardTitle>
                     </div>
                     <CardDescription className="font-mono">
-                      Manage your developer access
+                      Manage your API keys for video generation
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button variant="outline" className="w-full rounded-2xl font-mono">
-                      Generate API Key
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full rounded-2xl font-mono">
+                          View API Keys
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="font-mono text-xl">API Keys Management</DialogTitle>
+                          <DialogDescription className="font-mono">
+                            Required API keys for Lumora video generation features
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-6 py-4">
+                          {/* OpenAI API Key */}
+                          <div className="space-y-2 p-4 border rounded-xl bg-card">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <h3 className="font-semibold font-mono flex items-center gap-2">
+                                  OpenAI API Key
+                                  <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">Configured</span>
+                                </h3>
+                                <p className="text-sm text-muted-foreground font-mono">
+                                  Used for: Script generation, content analysis, and AI-powered features
+                                </p>
+                                <p className="text-xs text-muted-foreground font-mono mt-1">
+                                  Get your key at: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">platform.openai.com/api-keys</a>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Replicate API Key */}
+                          <div className="space-y-2 p-4 border rounded-xl bg-card">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <h3 className="font-semibold font-mono flex items-center gap-2">
+                                  Replicate API Key
+                                  <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">Configured</span>
+                                </h3>
+                                <p className="text-sm text-muted-foreground font-mono">
+                                  Used for: Video generation, image-to-video conversion, and AI video models
+                                </p>
+                                <p className="text-xs text-muted-foreground font-mono mt-1">
+                                  Get your key at: <a href="https://replicate.com/account/api-tokens" target="_blank" rel="noopener noreferrer" className="text-primary underline">replicate.com/account/api-tokens</a>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ElevenLabs API Key */}
+                          <div className="space-y-2 p-4 border rounded-xl bg-card">
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1 flex-1">
+                                <h3 className="font-semibold font-mono flex items-center gap-2">
+                                  ElevenLabs API Key
+                                  <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">Configured</span>
+                                </h3>
+                                <p className="text-sm text-muted-foreground font-mono">
+                                  Used for: AI voiceover generation and text-to-speech features
+                                </p>
+                                <p className="text-xs text-muted-foreground font-mono mt-1">
+                                  Get your key at: <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary underline">elevenlabs.io/app/settings/api-keys</a>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-3">
+                            <h4 className="font-semibold font-mono text-sm">How to Update Keys:</h4>
+                            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground font-mono">
+                              <li>Go to your Supabase project dashboard</li>
+                              <li>Navigate to Settings → Edge Functions → Secrets</li>
+                              <li>Add or update the secret with the exact name shown above</li>
+                              <li>Paste your API key value</li>
+                              <li>Save changes</li>
+                            </ol>
+                            
+                            <Button 
+                              variant="outline" 
+                              className="w-full rounded-2xl font-mono mt-4"
+                              onClick={() => window.open('https://supabase.com/dashboard/project/hipolqjthriiwdzfxpdd/settings/functions', '_blank')}
+                            >
+                              Open Supabase Secrets →
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </CardContent>
                 </Card>
               </div>
