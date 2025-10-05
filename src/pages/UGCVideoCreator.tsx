@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
@@ -172,7 +173,13 @@ const UGCVideoCreator = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || 'Edge Function returned a non-2xx status code');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
+      }
 
       if (data.success && data.videoUrl) {
         setGeneratedVideo(data.videoUrl);
@@ -428,13 +435,15 @@ const UGCVideoCreator = () => {
                     )}
                   </Button>
 
-                  {isGenerating && (
-                    <LoadingAnimation
-                      stage="generating"
-                      progress={50}
-                      message="AI is generating your avatar, adding voice synthesis, captions, emojis, and background scenes..."
-                    />
-                  )}
+                  <Dialog open={isGenerating}>
+                    <DialogContent className="max-w-4xl border-none p-0 bg-transparent shadow-none">
+                      <LoadingAnimation
+                        stage="generating"
+                        progress={50}
+                        message="AI is generating your avatar, adding voice synthesis, captions, emojis, and background scenes..."
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               ) : (
                 /* Video Preview */

@@ -55,13 +55,14 @@ serve(async (req) => {
     console.log('Generating voiceover...');
     
     const voiceMapping = {
-      'natural_male': '21m00Tcm4TlvDq8ikWAM',
-      'natural_female': 'EXAVITQu4vr4xnSDxMaL',
+      'natural-male': '21m00Tcm4TlvDq8ikWAM',
+      'natural-female': 'EXAVITQu4vr4xnSDxMaL',
       'energetic': 'IKne3meq5aSn9XLyUdCD',
-      'calm': 'pFZP5JQG7iQjIQuC4Bku'
+      'calm': 'pFZP5JQG7iQjIQuC4Bku',
+      'youthful': 'IKne3meq5aSn9XLyUdCD'
     };
 
-    const voiceId = voiceMapping[voiceStyle] || voiceMapping['natural_female'];
+    const voiceId = voiceMapping[voiceStyle] || voiceMapping['natural-female'];
     
     const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
@@ -95,9 +96,9 @@ serve(async (req) => {
     console.log('Generating UGC-style video...');
     
     const characterPrompts = {
-      'realistic_human': 'Realistic human influencer, natural lighting, professional setup',
+      'realistic-human': 'Realistic human influencer, natural lighting, professional setup',
       'cartoon': 'Animated cartoon character, vibrant colors, fun and engaging',
-      'ai_influencer': 'Modern AI-generated influencer, perfect lighting, trendy background'
+      'ai-influencer': 'Modern AI-generated influencer, perfect lighting, trendy background'
     };
 
     const videoPrompt = `Create a UGC-style promotional video featuring a ${characterPrompts[characterType]}. 

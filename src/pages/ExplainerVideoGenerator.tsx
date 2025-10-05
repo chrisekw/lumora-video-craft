@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
@@ -152,7 +153,13 @@ const ExplainerVideoGenerator = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || 'Edge Function returned a non-2xx status code');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error + (data.details ? `: ${data.details}` : ''));
+      }
 
       if (data.success && data.videoUrl) {
         setGeneratedVideo(data.videoUrl);
@@ -397,13 +404,15 @@ const ExplainerVideoGenerator = () => {
                     )}
                   </Button>
 
-                  {isGenerating && (
-                    <LoadingAnimation
-                      stage="generating"
-                      progress={50}
-                      message="AI is generating animations, icons, text overlays, voiceover synthesis, and background music..."
-                    />
-                  )}
+                  <Dialog open={isGenerating}>
+                    <DialogContent className="max-w-4xl border-none p-0 bg-transparent shadow-none">
+                      <LoadingAnimation
+                        stage="generating"
+                        progress={50}
+                        message="AI is generating animations, icons, text overlays, voiceover synthesis, and background music..."
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               ) : (
                 /* Video Preview */

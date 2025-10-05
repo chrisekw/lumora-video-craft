@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { useToast } from "@/components/ui/use-toast";
@@ -120,7 +121,9 @@ const PromptToVideo = () => {
       }
 
       if (!videoResult || videoResult.error) {
-        throw new Error(videoResult?.error || 'No video URL returned from generation');
+        const errorMsg = videoResult?.error || 'No video URL returned from generation';
+        const errorDetails = videoResult?.details ? `: ${videoResult.details}` : '';
+        throw new Error(errorMsg + errorDetails);
       }
 
       // Stage 3: Rendering
@@ -396,13 +399,15 @@ const PromptToVideo = () => {
                     )}
                   </Button>
 
-                  {isGenerating && (
-                    <LoadingAnimation
-                      stage={generationStage}
-                      progress={generationProgress}
-                      message="AI is analyzing your prompt and generating visuals, music, and effects..."
-                    />
-                  )}
+                  <Dialog open={isGenerating}>
+                    <DialogContent className="max-w-4xl border-none p-0 bg-transparent shadow-none">
+                      <LoadingAnimation
+                        stage={generationStage}
+                        progress={generationProgress}
+                        message="AI is analyzing your prompt and generating visuals, music, and effects..."
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </div>
               ) : (
                 /* Video Preview */
