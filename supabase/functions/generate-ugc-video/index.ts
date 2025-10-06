@@ -86,7 +86,25 @@ serve(async (req) => {
     if (!voiceResponse.ok) {
       const error = await voiceResponse.text();
       console.error('ElevenLabs API error:', error);
-      throw new Error(`Failed to generate voiceover: ${error}`);
+      
+      let errorMessage = 'Failed to generate voiceover';
+      try {
+        const errorJson = JSON.parse(error);
+        if (voiceResponse.status === 401) {
+          errorMessage = 'Invalid ElevenLabs API key. Please check your API key at https://elevenlabs.io/app/settings/api-keys';
+        } else if (voiceResponse.status === 402) {
+          errorMessage = 'Insufficient ElevenLabs credits. Please add credits at https://elevenlabs.io/app/subscription';
+        } else if (errorJson.detail) {
+          errorMessage = `ElevenLabs Error: ${errorJson.detail.message || errorJson.detail}`;
+        }
+      } catch {
+        errorMessage = error || errorMessage;
+      }
+      
+      return new Response(
+        JSON.stringify({ error: errorMessage }),
+        { status: voiceResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const audioBlob = await voiceResponse.arrayBuffer();

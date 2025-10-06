@@ -123,7 +123,20 @@ Return ONLY a valid JSON object with this structure:
     if (!openaiResponse.ok) {
       const errorText = await openaiResponse.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error('Failed to analyze content with AI');
+      
+      let errorMessage = 'Failed to analyze content with AI';
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.code === 'insufficient_quota') {
+          errorMessage = 'OpenAI API quota exceeded. Please add credits at https://platform.openai.com/account/billing';
+        } else if (errorData.error?.message) {
+          errorMessage = `OpenAI Error: ${errorData.error.message}`;
+        }
+      } catch {
+        // If we can't parse the error, use the default message
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const openaiData = await openaiResponse.json();
