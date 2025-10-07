@@ -12,10 +12,7 @@ import Templates from "./pages/Templates";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import URLCloneInput from "./pages/URLCloneInput";
-import URLCloneProcessing from "./pages/URLCloneProcessing";
-import URLCloneCustomize from "./pages/URLCloneCustomize";
-import URLCloneGenerate from "./pages/URLCloneGenerate";
+import URLToVideo from "./pages/URLToVideo";
 import VideoCloneGenerator from "./pages/VideoCloneGenerator";
 import PromptToVideo from "./pages/PromptToVideo";
 import UGCVideoCreator from "./pages/UGCVideoCreator";
@@ -35,10 +32,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/create-project" element={<CreateProject />} />
-            <Route path="/create-project/url-clone" element={<URLCloneInput />} />
-            <Route path="/create-project/url-clone/processing" element={<URLCloneProcessing />} />
-            <Route path="/create-project/url-clone/customize" element={<URLCloneCustomize />} />
-            <Route path="/create-project/url-clone/generate" element={<URLCloneGenerate />} />
+            <Route path="/create-project/url-clone" element={<URLToVideo />} />
             <Route path="/create-project/video-clone" element={<VideoCloneGenerator />} />
             <Route path="/create-project/prompt-to-video" element={<PromptToVideo />} />
             <Route path="/create-project/ugc-creator" element={<UGCVideoCreator />} />
