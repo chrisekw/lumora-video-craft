@@ -6,7 +6,8 @@ import {
   Settings, 
   Sparkles,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Brain
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -25,6 +26,7 @@ import {
 
 const menuItems = [
   { title: "Projects", url: "/dashboard", icon: FolderOpen },
+  { title: "Smart Video", url: "/smart-video", icon: Brain },
   { title: "Templates", url: "/templates", icon: Layout },
   { title: "Billing", url: "/billing", icon: CreditCard },
   { title: "Settings", url: "/settings", icon: Settings },

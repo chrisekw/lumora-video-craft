@@ -17,6 +17,7 @@ import VideoCloneGenerator from "./pages/VideoCloneGenerator";
 import PromptToVideo from "./pages/PromptToVideo";
 import UGCVideoCreator from "./pages/UGCVideoCreator";
 import ExplainerVideoGenerator from "./pages/ExplainerVideoGenerator";
+import SmartVideoGenerator from "./pages/SmartVideoGenerator";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/templates" element={<Templates />} />
             <Route path="/billing" element={<Billing />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/smart-video" element={<SmartVideoGenerator />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
