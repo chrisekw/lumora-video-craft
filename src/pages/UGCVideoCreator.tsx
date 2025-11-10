@@ -85,7 +85,6 @@ const UGCVideoCreator = () => {
       });
 
     } catch (error) {
-      console.error('Error generating script:', error);
       setIsGeneratingScript(false);
       toast({
         title: "Script Generation Failed",
@@ -208,7 +207,6 @@ const UGCVideoCreator = () => {
       setIsGenerating(false);
 
     } catch (error) {
-      console.error('Error generating video:', error);
       setIsGenerating(false);
       toast({
         title: "Generation Failed",

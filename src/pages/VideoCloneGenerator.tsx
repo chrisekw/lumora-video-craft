@@ -235,7 +235,6 @@ const VideoCloneGenerator = () => {
       setIsGenerating(false);
 
     } catch (error) {
-      console.error('Error generating video:', error);
       setIsGenerating(false);
       toast({
         title: "Generation Failed",

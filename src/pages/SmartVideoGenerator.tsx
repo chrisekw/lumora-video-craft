@@ -80,7 +80,6 @@ const SmartVideoGenerator = () => {
         description: `${data.scenes.length} scenes ready for video generation`,
       });
     } catch (error) {
-      console.error('Error generating scenes:', error);
       toast({
         title: "Generation failed",
         description: error instanceof Error ? error.message : "Failed to generate scenes",
@@ -122,7 +121,6 @@ const SmartVideoGenerator = () => {
 
             return { index, predictionId: data.predictionId };
           } catch (error) {
-            console.error(`Error generating scene ${index}:`, error);
             setGeneratedScenes(prev => prev.map((s, i) => 
               i === index ? { ...s, status: 'error' as const } : s
             ));
@@ -131,10 +129,29 @@ const SmartVideoGenerator = () => {
         })
       );
 
-      // Poll for completion
+      // Poll for completion with better state tracking
       const validPredictions = predictions.filter(p => p !== null);
+      let completedCount = 0;
+      let pollAttempts = 0;
+      const maxAttempts = 100; // 5 minutes at 3s intervals
       
       const pollInterval = setInterval(async () => {
+        pollAttempts++;
+        
+        // Stop polling after max attempts
+        if (pollAttempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setIsGeneratingVideos(false);
+          toast({
+            title: "Generation timeout",
+            description: "Video generation took too long. Check back later.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        let updatedCompletedCount = 0;
+
         for (const pred of validPredictions) {
           if (!pred) continue;
 
@@ -144,44 +161,46 @@ const SmartVideoGenerator = () => {
             });
 
             if (data.status === 'succeeded' && data.output) {
-              setGeneratedScenes(prev => prev.map((s, i) => 
-                i === pred.index ? { 
-                  ...s, 
-                  status: 'completed' as const, 
-                  videoUrl: Array.isArray(data.output) ? data.output[0] : data.output 
-                } : s
-              ));
+              updatedCompletedCount++;
+              setGeneratedScenes(prev => {
+                const updated = prev.map((s, i) => 
+                  i === pred.index ? { 
+                    ...s, 
+                    status: 'completed' as const, 
+                    videoUrl: Array.isArray(data.output) ? data.output[0] : data.output 
+                  } : s
+                );
+                return updated;
+              });
             } else if (data.status === 'failed') {
+              updatedCompletedCount++;
               setGeneratedScenes(prev => prev.map((s, i) => 
                 i === pred.index ? { ...s, status: 'error' as const } : s
               ));
             }
           } catch (error) {
-            console.error('Error checking status:', error);
+            // Silently continue on error
           }
         }
 
         // Check if all completed
-        const allDone = generatedScenes.every(s => s.status === 'completed' || s.status === 'error');
-        if (allDone) {
+        if (updatedCompletedCount >= validPredictions.length) {
           clearInterval(pollInterval);
           setIsGeneratingVideos(false);
-          const successCount = generatedScenes.filter(s => s.status === 'completed').length;
-          toast({
-            title: "Video generation complete!",
-            description: `${successCount} of ${scenesData.scenes.length} videos generated successfully`,
+          
+          // Get final success count
+          setGeneratedScenes(prev => {
+            const successCount = prev.filter(s => s.status === 'completed').length;
+            toast({
+              title: "Video generation complete!",
+              description: `${successCount} of ${scenesData.scenes.length} videos generated successfully`,
+            });
+            return prev;
           });
         }
       }, 3000);
 
-      // Clear interval after 5 minutes max
-      setTimeout(() => {
-        clearInterval(pollInterval);
-        setIsGeneratingVideos(false);
-      }, 300000);
-
     } catch (error) {
-      console.error('Error generating videos:', error);
       toast({
         title: "Generation failed",
         description: error instanceof Error ? error.message : "Failed to generate videos",

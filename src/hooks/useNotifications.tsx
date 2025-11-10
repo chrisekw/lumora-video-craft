@@ -75,10 +75,7 @@ export const useNotifications = () => {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching notifications:', error);
-      return;
-    }
+    if (error) return;
 
     setNotifications(data || []);
     setUnreadCount(data?.filter(n => !n.read).length || 0);

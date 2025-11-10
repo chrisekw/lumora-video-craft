@@ -67,10 +67,7 @@ const NotificationBell = () => {
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (error) {
-      console.error('Error fetching notifications:', error);
-      return;
-    }
+    if (error) return;
 
     setNotifications(data || []);
     setUnreadCount(data?.filter(n => !n.read).length || 0);
