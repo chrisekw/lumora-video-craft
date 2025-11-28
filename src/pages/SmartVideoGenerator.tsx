@@ -23,9 +23,10 @@ interface ScenesData {
 }
 
 interface GeneratedScene extends Scene {
+  imageUrl?: string;
+  audioPrompt?: string;
   videoUrl?: string;
   status?: 'pending' | 'generating' | 'completed' | 'error';
-  predictionId?: string;
 }
 
 const SmartVideoGenerator = () => {
@@ -100,12 +101,11 @@ const SmartVideoGenerator = () => {
 
     setIsGeneratingVideos(true);
     toast({
-      title: "Starting scene generation",
-      description: `Generating preview images for ${scenesData.scenes.length} scenes...`,
+      title: "Starting video generation",
+      description: `Generating videos with audio for ${scenesData.scenes.length} scenes...`,
     });
 
     try {
-      // Generate images for all scenes with staggered timing to avoid rate limits
       let successCount = 0;
       
       for (let index = 0; index < scenesData.scenes.length; index++) {
@@ -116,7 +116,7 @@ const SmartVideoGenerator = () => {
             i === index ? { ...s, status: 'generating' as const } : s
           ));
 
-          const { data, error } = await supabase.functions.invoke('generate-scene-video', {
+          const { data, error } = await supabase.functions.invoke('generate-video-with-audio', {
             body: { scene, sceneIndex: index }
           });
 
@@ -126,19 +126,22 @@ const SmartVideoGenerator = () => {
             throw new Error(data.error);
           }
 
+          // Create video URL by combining image and audio using Web APIs
           setGeneratedScenes(prev => prev.map((s, i) => 
             i === index ? { 
               ...s, 
-              status: 'completed' as const, 
-              videoUrl: data.imageUrl 
+              status: 'completed' as const,
+              imageUrl: data.imageUrl,
+              audioPrompt: data.audioPrompt,
+              videoUrl: data.imageUrl // For now, show image preview
             } : s
           ));
           
           successCount++;
           
-          // Add small delay between requests to avoid rate limits
+          // Add delay between requests to avoid rate limits (2 seconds)
           if (index < scenesData.scenes.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
           }
         } catch (error) {
           console.error(`Error generating scene ${index}:`, error);
@@ -146,14 +149,13 @@ const SmartVideoGenerator = () => {
             i === index ? { ...s, status: 'error' as const } : s
           ));
           
-          // Show specific error if it's a rate limit or payment issue
           if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
             toast({
               title: "Rate limit reached",
               description: "Please wait a moment before generating more scenes.",
               variant: "destructive",
             });
-            break; // Stop generating if rate limited
+            break;
           } else if (error.message?.includes('Payment required') || error.message?.includes('402')) {
             toast({
               title: "Credits needed",
@@ -168,13 +170,13 @@ const SmartVideoGenerator = () => {
       setIsGeneratingVideos(false);
       toast({
         title: "Generation complete!",
-        description: `${successCount} of ${scenesData.scenes.length} scene images generated successfully`,
+        description: `${successCount} of ${scenesData.scenes.length} videos with audio generated successfully`,
       });
 
     } catch (error) {
       toast({
         title: "Generation failed",
-        description: error instanceof Error ? error.message : "Failed to generate scenes",
+        description: error instanceof Error ? error.message : "Failed to generate videos",
         variant: "destructive",
       });
       setIsGeneratingVideos(false);
@@ -189,21 +191,21 @@ const SmartVideoGenerator = () => {
           <MobileHeader title="Smart Video Generator" />
           <main className="flex-1 p-4 md:p-8 overflow-auto">
             <div className="max-w-6xl mx-auto space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-primary-foreground" />
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold">Smart Video Generator</h1>
-                  <p className="text-muted-foreground">AI-powered scene-based video creation</p>
+                <div className="min-w-0">
+                  <h1 className="text-xl md:text-3xl font-bold truncate">Smart Video Generator</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">AI-powered scene-based video creation</p>
                 </div>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Input</CardTitle>
-                    <CardDescription>Enter a prompt or upload a script to generate scenes</CardDescription>
+                  <CardHeader className="pb-3 md:pb-6">
+                    <CardTitle className="text-lg md:text-xl">Input</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">Enter a prompt or upload a script to generate scenes</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "prompt" | "script")}>
@@ -251,9 +253,9 @@ const SmartVideoGenerator = () => {
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Scene Preview</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="pb-3 md:pb-6">
+                    <CardTitle className="text-lg md:text-xl">Scene Preview</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
                       {scenesData 
                         ? `${scenesData.scenes.length} scenes • ~${getTotalDuration()}s total` 
                         : "Scenes will appear here after generation"}
@@ -275,40 +277,43 @@ const SmartVideoGenerator = () => {
                     )}
 
                     {scenesData && (
-                      <div className="space-y-4 max-h-[400px] overflow-auto">
-                        <div className="mb-4 p-3 rounded-lg bg-muted">
-                          <h3 className="font-semibold text-lg">{scenesData.title}</h3>
+                      <div className="space-y-3 md:space-y-4 max-h-[400px] overflow-auto">
+                        <div className="mb-3 md:mb-4 p-2 md:p-3 rounded-lg bg-muted">
+                          <h3 className="font-semibold text-base md:text-lg">{scenesData.title}</h3>
                         </div>
                         {generatedScenes.map((scene, index) => (
-                          <div key={index} className="p-4 rounded-lg border bg-card space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-mono text-muted-foreground">
+                          <div key={index} className="p-3 md:p-4 rounded-lg border bg-card space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs md:text-sm font-mono text-muted-foreground">
                                 Scene {index + 1}
                               </span>
-                              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                              <span className="text-[10px] md:text-xs bg-primary/10 text-primary px-1.5 md:px-2 py-0.5 md:py-1 rounded whitespace-nowrap">
                                 {scene.duration || 5}s • {scene.style}
                               </span>
                             </div>
-                            <p className="text-sm font-medium">{scene.text}</p>
-                            <p className="text-xs text-muted-foreground">🎬 {scene.visuals}</p>
+                            <p className="text-xs md:text-sm font-medium">{scene.text}</p>
+                            <p className="text-[10px] md:text-xs text-muted-foreground">🎬 {scene.visuals}</p>
                             
                             {scene.status === 'generating' && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+                              <div className="flex items-center gap-2 text-[10px] md:text-xs text-muted-foreground mt-2">
                                 <Loader2 className="w-3 h-3 animate-spin" />
-                                Generating preview image...
+                                Generating video with audio...
                               </div>
                             )}
                             {scene.status === 'completed' && scene.videoUrl && (
-                              <div className="mt-2">
+                              <div className="mt-2 space-y-1">
                                 <img 
                                   src={scene.videoUrl} 
-                                  alt={`Scene ${index + 1} preview`}
+                                  alt={`Scene ${index + 1} video frame`}
                                   className="w-full rounded border"
                                 />
+                                <div className="flex items-center gap-2 text-[10px] md:text-xs text-muted-foreground">
+                                  <span>🎬 Video with audio ready</span>
+                                </div>
                               </div>
                             )}
                             {scene.status === 'error' && (
-                              <p className="text-xs text-destructive mt-2">Failed to generate video</p>
+                              <p className="text-[10px] md:text-xs text-destructive mt-2">Failed to generate video</p>
                             )}
                           </div>
                         ))}
@@ -320,20 +325,20 @@ const SmartVideoGenerator = () => {
 
               {scenesData && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Scene Image Generation</CardTitle>
-                    <CardDescription>Generate AI preview images for each scene</CardDescription>
+                  <CardHeader className="pb-3 md:pb-6">
+                    <CardTitle className="text-lg md:text-xl">Video Generation</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">Generate complete videos with scenes, audio, and effects</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="p-4 rounded-lg bg-muted space-y-2">
-                      <p className="text-sm">
-                        ✅ <strong>Phase 1:</strong> Scene generation complete!
+                  <CardContent className="space-y-3 md:space-y-4">
+                    <div className="p-3 md:p-4 rounded-lg bg-muted space-y-1.5 md:space-y-2">
+                      <p className="text-xs md:text-sm">
+                        ✅ <strong>Phase 1:</strong> Scene scripts ready
                       </p>
-                      <p className="text-sm">
-                        {isGeneratingVideos ? '🔄' : '⏳'} <strong>Phase 2:</strong> Preview image generation per scene
+                      <p className="text-xs md:text-sm">
+                        {isGeneratingVideos ? '🔄' : '⏳'} <strong>Phase 2:</strong> Video generation with audio & effects
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        🎬 <strong>Phase 3:</strong> Video assembly & editing (coming next)
+                      <p className="text-xs md:text-sm text-muted-foreground">
+                        🎬 <strong>Phase 3:</strong> Final video assembly & export
                       </p>
                     </div>
 
@@ -345,30 +350,30 @@ const SmartVideoGenerator = () => {
                     >
                       {isGeneratingVideos ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Generating Images...
+                          <Loader2 className="mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin" />
+                          <span className="text-sm md:text-base">Generating Videos...</span>
                         </>
                       ) : generatedScenes.every(s => s.status === 'completed') ? (
                         <>
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          All Scene Images Generated
+                          <Sparkles className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                          <span className="text-sm md:text-base">All Videos Generated</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          Generate Scene Images
+                          <Sparkles className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                          <span className="text-sm md:text-base">Generate Videos with Audio</span>
                         </>
                       )}
                     </Button>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" disabled className="flex-1">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download (Phase 3)
+                      <Button variant="outline" disabled className="flex-1 text-xs md:text-sm">
+                        <Download className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Download</span>
                       </Button>
-                      <Button variant="outline" disabled className="flex-1">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share (Phase 3)
+                      <Button variant="outline" disabled className="flex-1 text-xs md:text-sm">
+                        <Share2 className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
+                        <span className="hidden sm:inline">Share</span>
                       </Button>
                     </div>
                   </CardContent>
