@@ -33,7 +33,7 @@ const TestimonialsSection = () => {
   return (
     <section className="py-12 sm:py-20 px-4 sm:px-6">
       <div className="container mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
+        <div className="text-center mb-12 sm:mb-16 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-mono mb-4 px-2">
             Loved by <span className="gradient-text">creators worldwide</span>
           </h2>
@@ -46,7 +46,7 @@ const TestimonialsSection = () => {
           {testimonials.map((testimonial, index) => (
             <Card 
               key={index}
-              className="bg-card border border-border/50 shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl"
+              className={`bg-card border border-border/50 shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl animate-fade-in delay-${index * 100 + 200}`}
             >
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">

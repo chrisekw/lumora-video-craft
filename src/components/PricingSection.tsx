@@ -84,7 +84,7 @@ const PricingSection = () => {
   return (
     <section id="pricing" className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-subtle">
       <div className="container mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
+        <div className="text-center mb-12 sm:mb-16 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-mono mb-4 px-2">
             Simple, transparent <span className="gradient-text">pricing</span>
           </h2>
@@ -97,7 +97,7 @@ const PricingSection = () => {
           {plans.map((plan, index) => (
             <Card 
               key={index}
-              className={`relative bg-card border shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl ${
+              className={`relative bg-card border shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl animate-fade-in delay-${index * 100 + 200} ${
                 plan.popular 
                   ? 'border-primary/50 shadow-glow md:scale-105' 
                   : 'border-border/50'
@@ -112,7 +112,7 @@ const PricingSection = () => {
               )}
               
               <CardHeader className="text-center pb-4">
-                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center ${
+                <div className={`w-12 h-12 mx-auto mb-4 rounded-xl flex items-center justify-center transition-spring hover:rotate-6 hover:scale-110 ${
                   plan.popular 
                     ? 'bg-gradient-primary shadow-glow' 
                     : 'bg-gradient-to-br from-muted to-muted-foreground/20'

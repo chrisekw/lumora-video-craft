@@ -51,7 +51,7 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-subtle">
       <div className="container mx-auto">
-        <div className="text-center mb-12 sm:mb-16">
+        <div className="text-center mb-12 sm:mb-16 animate-fade-in">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-mono mb-4 px-2">
             Everything you need to create{" "}
             <span className="gradient-text">amazing videos</span>
@@ -65,10 +65,10 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl"
+              className={`bg-card/50 backdrop-blur-sm border border-border/50 shadow-card hover:shadow-glow transition-spring hover:scale-105 rounded-2xl animate-fade-in delay-${(index % 3) * 100 + 200}`}
             >
               <CardHeader>
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-soft`}>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-soft transition-spring hover:rotate-6 hover:scale-110`}>
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
                 <CardTitle className="text-xl font-mono font-bold">

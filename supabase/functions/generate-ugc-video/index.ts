@@ -132,14 +132,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "9f747673945c62801b13b84701c783929c0ee784e4748ec062204894dda1a351",
+        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
         input: {
           prompt: videoPrompt,
           num_frames: 120,
-          num_inference_steps: 20,
-          width: 1080,
-          height: 1920, // 9:16 aspect ratio for social media
-          fps: 8
+          num_inference_steps: 50,
         }
       })
     });

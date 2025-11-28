@@ -26,21 +26,21 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-glow">
+        <Link to="/" className="flex items-center space-x-2 group">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-glow transition-spring group-hover:scale-110 group-hover:rotate-6">
             <span className="text-white font-bold text-base sm:text-lg font-mono">L</span>
           </div>
           <span className="text-lg sm:text-xl font-bold font-mono gradient-text">Lumora</span>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-muted-foreground hover:text-primary transition-smooth font-mono">
+          <a href="#features" className="text-muted-foreground hover:text-primary transition-smooth font-mono hover:scale-110 transform">
             Features
           </a>
-          <a href="#pricing" className="text-muted-foreground hover:text-primary transition-smooth font-mono">
+          <a href="#pricing" className="text-muted-foreground hover:text-primary transition-smooth font-mono hover:scale-110 transform">
             Pricing
           </a>
-          <a href="#templates" className="text-muted-foreground hover:text-primary transition-smooth font-mono">
+          <a href="#templates" className="text-muted-foreground hover:text-primary transition-smooth font-mono hover:scale-110 transform">
             Templates
           </a>
         </nav>
