@@ -100,110 +100,81 @@ const SmartVideoGenerator = () => {
 
     setIsGeneratingVideos(true);
     toast({
-      title: "Starting video generation",
-      description: `Generating videos for ${scenesData.scenes.length} scenes...`,
+      title: "Starting scene generation",
+      description: `Generating preview images for ${scenesData.scenes.length} scenes...`,
     });
 
     try {
-      // Start video generation for all scenes
-      const predictions = await Promise.all(
-        scenesData.scenes.map(async (scene, index) => {
-          try {
-            const { data, error } = await supabase.functions.invoke('generate-scene-video', {
-              body: { scene, sceneIndex: index }
-            });
-
-            if (error) throw error;
-
-            setGeneratedScenes(prev => prev.map((s, i) => 
-              i === index ? { ...s, status: 'generating' as const, predictionId: data.predictionId } : s
-            ));
-
-            return { index, predictionId: data.predictionId };
-          } catch (error) {
-            setGeneratedScenes(prev => prev.map((s, i) => 
-              i === index ? { ...s, status: 'error' as const } : s
-            ));
-            return null;
-          }
-        })
-      );
-
-      // Poll for completion with better state tracking
-      const validPredictions = predictions.filter(p => p !== null);
-      let completedCount = 0;
-      let pollAttempts = 0;
-      const maxAttempts = 100; // 5 minutes at 3s intervals
+      // Generate images for all scenes with staggered timing to avoid rate limits
+      let successCount = 0;
       
-      const pollInterval = setInterval(async () => {
-        pollAttempts++;
+      for (let index = 0; index < scenesData.scenes.length; index++) {
+        const scene = scenesData.scenes[index];
         
-        // Stop polling after max attempts
-        if (pollAttempts >= maxAttempts) {
-          clearInterval(pollInterval);
-          setIsGeneratingVideos(false);
-          toast({
-            title: "Generation timeout",
-            description: "Video generation took too long. Check back later.",
-            variant: "destructive",
+        try {
+          setGeneratedScenes(prev => prev.map((s, i) => 
+            i === index ? { ...s, status: 'generating' as const } : s
+          ));
+
+          const { data, error } = await supabase.functions.invoke('generate-scene-video', {
+            body: { scene, sceneIndex: index }
           });
-          return;
-        }
 
-        let updatedCompletedCount = 0;
+          if (error) throw error;
 
-        for (const pred of validPredictions) {
-          if (!pred) continue;
+          if (data.error) {
+            throw new Error(data.error);
+          }
 
-          try {
-            const { data } = await supabase.functions.invoke('check-video-status', {
-              body: { predictionId: pred.predictionId }
+          setGeneratedScenes(prev => prev.map((s, i) => 
+            i === index ? { 
+              ...s, 
+              status: 'completed' as const, 
+              videoUrl: data.imageUrl 
+            } : s
+          ));
+          
+          successCount++;
+          
+          // Add small delay between requests to avoid rate limits
+          if (index < scenesData.scenes.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (error) {
+          console.error(`Error generating scene ${index}:`, error);
+          setGeneratedScenes(prev => prev.map((s, i) => 
+            i === index ? { ...s, status: 'error' as const } : s
+          ));
+          
+          // Show specific error if it's a rate limit or payment issue
+          if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
+            toast({
+              title: "Rate limit reached",
+              description: "Please wait a moment before generating more scenes.",
+              variant: "destructive",
             });
-
-            if (data.status === 'succeeded' && data.output) {
-              updatedCompletedCount++;
-              setGeneratedScenes(prev => {
-                const updated = prev.map((s, i) => 
-                  i === pred.index ? { 
-                    ...s, 
-                    status: 'completed' as const, 
-                    videoUrl: Array.isArray(data.output) ? data.output[0] : data.output 
-                  } : s
-                );
-                return updated;
-              });
-            } else if (data.status === 'failed') {
-              updatedCompletedCount++;
-              setGeneratedScenes(prev => prev.map((s, i) => 
-                i === pred.index ? { ...s, status: 'error' as const } : s
-              ));
-            }
-          } catch (error) {
-            // Silently continue on error
+            break; // Stop generating if rate limited
+          } else if (error.message?.includes('Payment required') || error.message?.includes('402')) {
+            toast({
+              title: "Credits needed",
+              description: "Please add credits in Settings → Workspace → Usage.",
+              variant: "destructive",
+            });
+            break;
           }
         }
+      }
 
-        // Check if all completed
-        if (updatedCompletedCount >= validPredictions.length) {
-          clearInterval(pollInterval);
-          setIsGeneratingVideos(false);
-          
-          // Get final success count
-          setGeneratedScenes(prev => {
-            const successCount = prev.filter(s => s.status === 'completed').length;
-            toast({
-              title: "Video generation complete!",
-              description: `${successCount} of ${scenesData.scenes.length} videos generated successfully`,
-            });
-            return prev;
-          });
-        }
-      }, 3000);
+      setIsGeneratingVideos(false);
+      toast({
+        title: "Generation complete!",
+        description: `${successCount} of ${scenesData.scenes.length} scene images generated successfully`,
+      });
 
     } catch (error) {
       toast({
         title: "Generation failed",
-        description: error instanceof Error ? error.message : "Failed to generate videos",
+        description: error instanceof Error ? error.message : "Failed to generate scenes",
         variant: "destructive",
       });
       setIsGeneratingVideos(false);
@@ -324,14 +295,14 @@ const SmartVideoGenerator = () => {
                             {scene.status === 'generating' && (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
                                 <Loader2 className="w-3 h-3 animate-spin" />
-                                Generating video...
+                                Generating preview image...
                               </div>
                             )}
                             {scene.status === 'completed' && scene.videoUrl && (
                               <div className="mt-2">
-                                <video 
+                                <img 
                                   src={scene.videoUrl} 
-                                  controls 
+                                  alt={`Scene ${index + 1} preview`}
                                   className="w-full rounded border"
                                 />
                               </div>
@@ -350,8 +321,8 @@ const SmartVideoGenerator = () => {
               {scenesData && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Video Generation</CardTitle>
-                    <CardDescription>Generate videos for each scene</CardDescription>
+                    <CardTitle>Scene Image Generation</CardTitle>
+                    <CardDescription>Generate AI preview images for each scene</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 rounded-lg bg-muted space-y-2">
@@ -359,10 +330,10 @@ const SmartVideoGenerator = () => {
                         ✅ <strong>Phase 1:</strong> Scene generation complete!
                       </p>
                       <p className="text-sm">
-                        {isGeneratingVideos ? '🔄' : '⏳'} <strong>Phase 2:</strong> Video generation per scene
+                        {isGeneratingVideos ? '🔄' : '⏳'} <strong>Phase 2:</strong> Preview image generation per scene
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        🎬 <strong>Phase 3:</strong> Scene stitching & editing (coming next)
+                        🎬 <strong>Phase 3:</strong> Video assembly & editing (coming next)
                       </p>
                     </div>
 
@@ -375,17 +346,17 @@ const SmartVideoGenerator = () => {
                       {isGeneratingVideos ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Generating Videos...
+                          Generating Images...
                         </>
                       ) : generatedScenes.every(s => s.status === 'completed') ? (
                         <>
-                          <Film className="mr-2 h-5 w-5" />
-                          All Videos Generated
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          All Scene Images Generated
                         </>
                       ) : (
                         <>
-                          <Film className="mr-2 h-5 w-5" />
-                          Generate Scene Videos
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Generate Scene Images
                         </>
                       )}
                     </Button>
