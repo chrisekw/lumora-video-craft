@@ -50,10 +50,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "4d1b8dd8e538e5c7f4a5e6c6e5f5e5f5e5f5e5f5e5f5e5f5e5f5e5f5e5f5e5f5", // CogVideoX model
+        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
         input: {
           prompt: videoPrompt,
-          num_frames: Math.min((scene.duration || 5) * 8, 49), // ~8 fps, max 49 frames
+          num_frames: Math.min((scene.duration || 5) * 8, 49),
           num_inference_steps: 50,
         }
       }),
