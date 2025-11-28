@@ -28,77 +28,76 @@ serve(async (req) => {
       );
     }
 
-    const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
-    if (!REPLICATE_API_KEY) {
-      console.error('REPLICATE_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: "Replicate API key not configured. Please add it in Supabase Secrets." }),
+        JSON.stringify({ error: "Lovable AI key not configured." }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Construct a detailed prompt for video generation
-    const videoPrompt = `${scene.visuals}. ${scene.style} style. High quality, cinematic, ${scene.duration || 5} seconds.`;
+    // Construct a detailed prompt for image generation
+    const imagePrompt = `Create a cinematic video frame showing: ${scene.visuals}. Style: ${scene.style}, high quality, professional cinematography, detailed and engaging composition.`;
     
-    console.log(`Generating video for scene ${sceneIndex}:`, videoPrompt);
+    console.log(`Generating scene image ${sceneIndex}:`, imagePrompt);
 
-    // Start video generation with Replicate
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
+    // Generate scene preview image with Lovable AI
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${REPLICATE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
-        input: {
-          prompt: videoPrompt,
-          num_frames: Math.min((scene.duration || 5) * 8, 49),
-          num_inference_steps: 50,
-        }
+        model: 'google/gemini-2.5-flash-image',
+        messages: [
+          {
+            role: 'user',
+            content: imagePrompt
+          }
+        ],
+        modalities: ['image', 'text']
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Replicate API error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Replicate rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
-      if (response.status === 401) {
+      if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Invalid Replicate API key. Please update your API key in Supabase Secrets." }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      if (errorText.includes('insufficient_quota') || errorText.includes('billing')) {
-        return new Response(
-          JSON.stringify({ 
-            error: "Insufficient Replicate credits. Please add credits to your Replicate account." 
-          }),
+          JSON.stringify({ error: "Payment required. Please add credits to your Lovable AI workspace in Settings → Workspace → Usage." }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: `Replicate API error: ${errorText}` }),
+        JSON.stringify({ error: `AI generation error: ${errorText}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const prediction = await response.json();
-    console.log('Video generation started:', prediction.id);
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageUrl) {
+      throw new Error('No image URL returned from generation');
+    }
+
+    console.log('Scene image generated successfully for scene', sceneIndex);
 
     return new Response(
       JSON.stringify({
-        predictionId: prediction.id,
-        status: prediction.status,
+        imageUrl,
+        status: 'completed',
         sceneIndex,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
