@@ -43,24 +43,23 @@ serve(async (req) => {
       );
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!OPENAI_API_KEY || !REPLICATE_API_KEY) {
-      throw new Error('Required API keys not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Step 1: Analyze the sample video using OpenAI Vision API
-    console.log('Analyzing sample video style...');
+    // Step 1: Analyze the sample video using Lovable AI
+    console.log('Analyzing sample video style with Lovable AI...');
     
-    const analysisResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const analysisResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -71,7 +70,7 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Please analyze the style of this video and provide a detailed description that can be used to create similar content.'
+                text: 'Please analyze the style of this video and provide a detailed description.'
               },
               {
                 type: 'image_url',
@@ -81,118 +80,74 @@ serve(async (req) => {
               }
             ]
           }
-        ],
-        max_completion_tokens: 500
+        ]
       })
     });
 
     if (!analysisResponse.ok) {
       const error = await analysisResponse.text();
-      console.error('OpenAI analysis error:', error);
+      console.error('Lovable AI analysis error:', error);
+      
+      if (analysisResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (analysisResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits in Settings → Workspace → Usage.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       throw new Error(`Failed to analyze video style: ${error}`);
     }
 
     const analysisData = await analysisResponse.json();
     const styleDescription = analysisData.choices[0].message.content;
-    console.log('Style analysis completed:', styleDescription);
+    console.log('Style analysis completed');
 
     // Step 2: Generate new video with the analyzed style
     console.log('Generating new video with cloned style...');
     
-    const dimensions = resolution === '4K' ? { width: 3840, height: 2160 } :
-                     resolution === '1080p' ? { width: 1920, height: 1080 } :
-                     { width: 1280, height: 720 };
-
-    if (aspectRatio === '1:1') {
-      dimensions.width = dimensions.height;
-    } else if (aspectRatio === '9:16') {
-      const temp = dimensions.width;
-      dimensions.width = Math.round(dimensions.height * 9 / 16);
-      dimensions.height = temp;
-    }
-
-    const videoPrompt = `Create a video with this content: "${contentText}". 
-    Style requirements based on analysis: ${styleDescription}. 
+    const videoPrompt = `Create a video frame matching this style: ${styleDescription}. 
+    Content: "${contentText}". 
     Resolution: ${resolution}, Aspect ratio: ${aspectRatio}. 
-    High quality, professional, engaging video with the same visual style and pacing.`;
+    High quality, professional, engaging video with the same visual style and aesthetic.`;
 
-    const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
+    const videoResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${REPLICATE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "9f747673945c62801b13b84701c783929c0ee784e4748ec062204894dda1a351",
-        input: {
-          prompt: videoPrompt,
-          num_frames: 120,
-          num_inference_steps: 25,
-          width: dimensions.width,
-          height: dimensions.height,
-          fps: 8
-        }
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: videoPrompt
+          }
+        ],
+        modalities: ['image', 'text']
       })
     });
 
-    if (!replicateResponse.ok) {
-      const errorText = await replicateResponse.text();
-      console.error('Replicate API error:', errorText);
-      
-      let errorMessage = 'Failed to start video generation';
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (replicateResponse.status === 402) {
-          errorMessage = 'Insufficient Replicate API credits. Please add credits at https://replicate.com/account/billing';
-        } else {
-          errorMessage = errorJson.detail || errorJson.title || errorMessage;
-        }
-      } catch {
-        errorMessage = errorText || errorMessage;
-      }
-      
-      return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: replicateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!videoResponse.ok) {
+      const error = await videoResponse.text();
+      console.error('Video generation error:', error);
+      throw new Error(`Failed to generate video: ${error}`);
     }
 
-    const predictionData = await replicateResponse.json();
-    console.log('Video generation started:', predictionData.id);
-
-    // Step 3: Poll for completion
-    let videoUrl = null;
-    let attempts = 0;
-    const maxAttempts = 72; // 6 minutes max
-
-    while (!videoUrl && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${predictionData.id}`, {
-        headers: {
-          'Authorization': `Token ${REPLICATE_API_KEY}`,
-        }
-      });
-
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log('Generation status:', statusData.status);
-        
-        if (statusData.status === 'succeeded' && statusData.output) {
-          videoUrl = Array.isArray(statusData.output) ? statusData.output[0] : statusData.output;
-          console.log('Video cloned successfully:', videoUrl);
-          break;
-        } else if (statusData.status === 'failed') {
-          throw new Error('Video generation failed');
-        }
-      }
-      
-      attempts++;
-    }
+    const videoData = await videoResponse.json();
+    const videoUrl = videoData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!videoUrl) {
-      throw new Error('Video generation timed out');
+      throw new Error('No video generated');
     }
+
+    console.log('Video cloned successfully');
 
     return new Response(
       JSON.stringify({

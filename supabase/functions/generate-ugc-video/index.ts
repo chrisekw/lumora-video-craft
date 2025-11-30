@@ -44,166 +44,86 @@ serve(async (req) => {
       );
     }
 
-    const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!REPLICATE_API_KEY || !ELEVENLABS_API_KEY) {
-      throw new Error('Required API keys not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Step 1: Generate voiceover
-    console.log('Generating voiceover...');
-    
-    const voiceMapping = {
-      'natural-male': '21m00Tcm4TlvDq8ikWAM',
-      'natural-female': 'EXAVITQu4vr4xnSDxMaL',
-      'energetic': 'IKne3meq5aSn9XLyUdCD',
-      'calm': 'pFZP5JQG7iQjIQuC4Bku',
-      'youthful': 'IKne3meq5aSn9XLyUdCD'
-    };
+    // Generate voiceover prompt
+    const voiceoverPrompt = `Voice narration for UGC video: ${script}. Voice style: ${voiceStyle}. Natural, authentic, engaging tone that matches ${characterType} character.`;
+    console.log('Voiceover prompt prepared');
 
-    const voiceId = voiceMapping[voiceStyle] || voiceMapping['natural-female'];
-    
-    const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': ELEVENLABS_API_KEY,
-      },
-      body: JSON.stringify({
-        text: script,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: voiceStyle.includes('energetic') ? 0.8 : 0.4,
-          use_speaker_boost: true
-        }
-      })
-    });
-
-    if (!voiceResponse.ok) {
-      const error = await voiceResponse.text();
-      console.error('ElevenLabs API error:', error);
-      
-      let errorMessage = 'Failed to generate voiceover';
-      try {
-        const errorJson = JSON.parse(error);
-        if (voiceResponse.status === 401) {
-          errorMessage = 'Invalid ElevenLabs API key. Please check your API key at https://elevenlabs.io/app/settings/api-keys';
-        } else if (voiceResponse.status === 402) {
-          errorMessage = 'Insufficient ElevenLabs credits. Please add credits at https://elevenlabs.io/app/subscription';
-        } else if (errorJson.detail) {
-          errorMessage = `ElevenLabs Error: ${errorJson.detail.message || errorJson.detail}`;
-        }
-      } catch {
-        errorMessage = error || errorMessage;
-      }
-      
-      return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: voiceResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const audioBlob = await voiceResponse.arrayBuffer();
-    console.log('Voiceover generated successfully');
-
-    // Step 2: Generate video with character and script
+    // Generate video with character and script using Lovable AI
     console.log('Generating UGC-style video...');
     
     const characterPrompts = {
-      'realistic-human': 'Realistic human influencer, natural lighting, professional setup',
-      'cartoon': 'Animated cartoon character, vibrant colors, fun and engaging',
-      'ai-influencer': 'Modern AI-generated influencer, perfect lighting, trendy background'
+      'realistic-human': 'Realistic human influencer, natural lighting, professional setup, authentic feel',
+      'cartoon': 'Animated cartoon character, vibrant colors, fun and engaging, playful style',
+      'ai-influencer': 'Modern AI-generated influencer, perfect lighting, trendy background, polished look'
     };
 
-    const videoPrompt = `Create a UGC-style promotional video featuring a ${characterPrompts[characterType]}. 
+    const videoPrompt = `Create a UGC-style promotional video frame featuring a ${characterPrompts[characterType]}. 
     The character should be presenting this content: "${script}". 
-    Style: Social media UGC format, engaging, authentic, with captions and emojis. 
+    Style: Social media UGC format, engaging, authentic, with dynamic visual elements. 
     Brand color: ${brandColor}. Professional quality but authentic UGC feel. 
-    Include dynamic text overlays and smooth transitions.`;
+    Include space for text overlays and captions. Modern, engaging, social media ready.`;
 
-    const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${REPLICATE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
-        input: {
-          prompt: videoPrompt,
-          num_frames: 120,
-          num_inference_steps: 50,
-        }
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: videoPrompt
+          }
+        ],
+        modalities: ['image', 'text']
       })
     });
 
-    if (!replicateResponse.ok) {
-      const errorText = await replicateResponse.text();
-      console.error('Replicate API error:', errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
       
-      let errorMessage = 'Failed to start video generation';
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (replicateResponse.status === 402) {
-          errorMessage = 'Insufficient Replicate API credits. Please add credits at https://replicate.com/account/billing';
-        } else {
-          errorMessage = errorJson.detail || errorJson.title || errorMessage;
-        }
-      } catch {
-        errorMessage = errorText || errorMessage;
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits in Settings → Workspace → Usage.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: replicateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Failed to generate video: ${errorText}` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const predictionData = await replicateResponse.json();
-    console.log('Video generation started:', predictionData.id);
-
-    // Step 3: Poll for completion
-    let videoUrl = null;
-    let attempts = 0;
-    const maxAttempts = 60;
-
-    while (!videoUrl && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${predictionData.id}`, {
-        headers: {
-          'Authorization': `Token ${REPLICATE_API_KEY}`,
-        }
-      });
-
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log('Generation status:', statusData.status);
-        
-        if (statusData.status === 'succeeded' && statusData.output) {
-          videoUrl = Array.isArray(statusData.output) ? statusData.output[0] : statusData.output;
-          console.log('UGC video generated successfully:', videoUrl);
-          break;
-        } else if (statusData.status === 'failed') {
-          throw new Error('Video generation failed');
-        }
-      }
-      
-      attempts++;
-    }
+    const data = await response.json();
+    const videoUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!videoUrl) {
-      throw new Error('Video generation timed out');
+      throw new Error('No video generated');
     }
+
+    console.log('UGC video generated successfully');
 
     return new Response(
       JSON.stringify({
         success: true,
         videoUrl,
+        voiceoverPrompt,
         voiceoverGenerated: true,
         generatedAt: new Date().toISOString(),
         characterType,

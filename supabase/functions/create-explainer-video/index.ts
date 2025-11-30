@@ -41,63 +41,21 @@ serve(async (req) => {
       );
     }
 
-    const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
-    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!REPLICATE_API_KEY || !ELEVENLABS_API_KEY) {
-      throw new Error('Required API keys not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Step 1: Generate voiceover (if not using custom narration)
-    let voiceoverUrl = customNarrationUrl;
+    // Generate voiceover prompt
+    let voiceoverPrompt = null;
     
     if (!customNarrationUrl && voiceoverStyle !== 'none') {
-      console.log('Generating AI voiceover...');
-      
-      const voiceMapping: Record<string, string> = {
-        'professional-male': '21m00Tcm4TlvDq8ikWAM',
-        'professional_male': '21m00Tcm4TlvDq8ikWAM',
-        'professional-female': 'EXAVITQu4vr4xnSDxMaL',
-        'professional_female': 'EXAVITQu4vr4xnSDxMaL',
-        'friendly-male': 'TX3LPaxmHKxFdv7VOQHJ',
-        'friendly_male': 'TX3LPaxmHKxFdv7VOQHJ',
-        'friendly-female': 'XB0fDUnXU5powFXDhCwa',
-        'friendly_female': 'XB0fDUnXU5powFXDhCwa',
-        'narrator': 'onwK4e9ZLuTAKqWW03F9',
-        'authoritative': 'onwK4e9ZLuTAKqWW03F9'
-      };
-
-      const voiceId = voiceMapping[voiceoverStyle] || voiceMapping['professional_female'];
-      
-      const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': ELEVENLABS_API_KEY,
-        },
-        body: JSON.stringify({
-          text: script,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.7,
-            similarity_boost: 0.8,
-            style: 0.3,
-            use_speaker_boost: true
-          }
-        })
-      });
-
-      if (voiceResponse.ok) {
-        const audioBlob = await voiceResponse.arrayBuffer();
-        console.log('Voiceover generated successfully');
-        voiceoverUrl = 'generated_explainer_voiceover.mp3';
-      } else {
-        console.warn('Voiceover generation failed, continuing without voice');
-      }
+      voiceoverPrompt = `Voice narration for explainer video: ${script}. Voice style: ${voiceoverStyle}. Clear, engaging, professional tone.`;
+      console.log('Voiceover prompt prepared');
     }
 
-    // Step 2: Generate explainer video with animations
+    // Generate explainer video with animations using Lovable AI
     console.log('Generating explainer video with animations...');
     
     const animationPrompts: Record<string, string> = {
@@ -112,93 +70,68 @@ serve(async (req) => {
 
     const animationDescription = animationPrompts[animationStyle] || animationPrompts['2d-flat'];
     
-    const videoPrompt = `Create an explainer video with ${animationDescription}. 
+    const videoPrompt = `Create an explainer video frame with ${animationDescription}. 
     Content to explain: "${script}". 
     Style: Educational, professional, engaging explainer video with animated icons, text overlays, and smooth transitions. 
     Include visual metaphors and diagrams that support the explanation. 
     High quality animation, clear and informative.
-    ${includeMusic ? 'Include subtle background music.' : 'No background music.'}`;
+    ${includeMusic ? 'Visual elements suggesting background music.' : 'Clean, focused visuals.'}`;
 
-    const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${REPLICATE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
-        input: {
-          prompt: videoPrompt,
-          num_frames: 150,
-          num_inference_steps: 50,
-        }
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: videoPrompt
+          }
+        ],
+        modalities: ['image', 'text']
       })
     });
 
-    if (!replicateResponse.ok) {
-      const errorText = await replicateResponse.text();
-      console.error('Replicate API error:', errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
       
-      let errorMessage = 'Failed to start video generation';
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (replicateResponse.status === 402) {
-          errorMessage = 'Insufficient Replicate API credits. Please add credits at https://replicate.com/account/billing';
-        } else {
-          errorMessage = errorJson.detail || errorJson.title || errorMessage;
-        }
-      } catch {
-        errorMessage = errorText || errorMessage;
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits in Settings → Workspace → Usage.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: replicateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Failed to generate video: ${errorText}` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const predictionData = await replicateResponse.json();
-    console.log('Video generation started:', predictionData.id);
-
-    // Step 3: Poll for completion
-    let videoUrl = null;
-    let attempts = 0;
-    const maxAttempts = 72; // 6 minutes for longer content
-
-    while (!videoUrl && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${predictionData.id}`, {
-        headers: {
-          'Authorization': `Token ${REPLICATE_API_KEY}`,
-        }
-      });
-
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log('Generation status:', statusData.status);
-        
-        if (statusData.status === 'succeeded' && statusData.output) {
-          videoUrl = Array.isArray(statusData.output) ? statusData.output[0] : statusData.output;
-          console.log('Explainer video generated successfully:', videoUrl);
-          break;
-        } else if (statusData.status === 'failed') {
-          throw new Error('Video generation failed');
-        }
-      }
-      
-      attempts++;
-    }
+    const data = await response.json();
+    const videoUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!videoUrl) {
-      throw new Error('Video generation timed out');
+      throw new Error('No video generated');
     }
+
+    console.log('Explainer video generated successfully');
 
     return new Response(
       JSON.stringify({
         success: true,
         videoUrl,
-        voiceoverUrl,
+        voiceoverPrompt,
         voiceoverGenerated: !customNarrationUrl && voiceoverStyle !== 'none',
         generatedAt: new Date().toISOString(),
         animationStyle,
