@@ -15,6 +15,15 @@ import { useToast } from "@/components/ui/use-toast";
 
 const projectMethods = [
   {
+    id: "smart-video",
+    title: "Smart Video Generator",
+    description: "AI-powered video with scenes, audio & effects",
+    icon: Wand2,
+    gradient: "from-primary/25 to-accent/25",
+    iconColor: "text-primary",
+    featured: true
+  },
+  {
     id: "paste-url",
     title: "Paste URL",
     description: "Auto-generate video from any webpage",
@@ -66,6 +75,9 @@ const CreateProject = () => {
     
     // Navigate to specific method page
     switch (methodId) {
+      case 'smart-video':
+        navigate('/smart-video');
+        break;
       case 'paste-url':
         navigate('/create-project/url-clone');
         break;
@@ -110,6 +122,7 @@ const CreateProject = () => {
                 {projectMethods.map((method) => {
                   const Icon = method.icon;
                   const isSelected = selectedMethod === method.id;
+                  const isFeatured = method.featured;
                   
                   return (
                     <Card 
@@ -118,29 +131,36 @@ const CreateProject = () => {
                         isSelected 
                           ? 'ring-2 ring-primary shadow-glow' 
                           : 'hover:shadow-soft'
-                      }`}
+                      } ${isFeatured ? 'md:col-span-2 xl:col-span-3' : ''}`}
                       onClick={() => handleMethodSelect(method.id)}
                     >
-                      <CardContent className="p-6">
+                      <CardContent className={`${isFeatured ? 'p-8' : 'p-6'}`}>
                         {/* Background Gradient */}
                         <div className={`absolute inset-0 bg-gradient-to-br ${method.gradient} opacity-50`} />
                         
                         {/* Content */}
-                        <div className="relative z-10">
+                        <div className={`relative z-10 ${isFeatured ? 'flex items-center gap-6' : ''}`}>
                           {/* Icon */}
-                          <div className="mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-soft">
-                              <Icon className={`w-6 h-6 ${method.iconColor}`} />
+                          <div className={isFeatured ? 'mb-0' : 'mb-4'}>
+                            <div className={`${isFeatured ? 'w-16 h-16' : 'w-12 h-12'} rounded-xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-soft`}>
+                              <Icon className={`${isFeatured ? 'w-8 h-8' : 'w-6 h-6'} ${method.iconColor}`} />
                             </div>
                           </div>
                           
                           {/* Text */}
-                          <h3 className="text-lg font-semibold font-mono mb-2">
-                            {method.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {method.description}
-                          </p>
+                          <div className="flex-1">
+                            {isFeatured && (
+                              <div className="inline-block px-3 py-1 mb-2 text-xs font-semibold bg-primary/20 text-primary rounded-full">
+                                ✨ Featured
+                              </div>
+                            )}
+                            <h3 className={`${isFeatured ? 'text-xl lg:text-2xl' : 'text-lg'} font-semibold font-mono mb-2`}>
+                              {method.title}
+                            </h3>
+                            <p className={`${isFeatured ? 'text-base' : 'text-sm'} text-muted-foreground leading-relaxed`}>
+                              {method.description}
+                            </p>
+                          </div>
                           
                           {/* Selection Indicator */}
                           {isSelected && (

@@ -22,12 +22,11 @@ serve(async (req) => {
     const body = await req.json();
     const { prompt, style, music, projectId } = body;
     
-    console.log('=== GENERATE PROMPT VIDEO REQUEST ===');
+    console.log('=== GENERATE PROMPT VIDEO REQUEST (Lovable AI) ===');
     console.log('Project ID:', projectId);
     console.log('Prompt:', prompt);
     console.log('Style:', style);
     console.log('Music:', music);
-    console.log('Request body:', JSON.stringify(body));
 
     if (!prompt || !projectId) {
       console.error('Missing required fields');
@@ -37,137 +36,84 @@ serve(async (req) => {
       );
     }
 
-    const REPLICATE_API_KEY = Deno.env.get('REPLICATE_API_KEY');
-    if (!REPLICATE_API_KEY) {
-      console.error('REPLICATE_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'REPLICATE_API_KEY not configured. Please add your Replicate API key in the Supabase dashboard.' }),
+        JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    console.log('API keys verified successfully');
+    console.log('API key verified successfully');
 
-    // Step 1: Generate video using Replicate API
-    console.log('Starting video generation with Replicate...');
+    // Generate video frame using Lovable AI
+    console.log('Starting video generation with Lovable AI...');
     
-    const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
+    const imagePrompt = `Create a high-quality video frame for: ${prompt}. Style: ${style}. Professional, cinematic, engaging visual that represents this content. High resolution, detailed, vibrant colors.`;
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${REPLICATE_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: "e047b1d734c550671fb4de7f7df7f9341ed498b4aa7cd88b82533b60dfec33e3",
-        input: {
-          prompt: `${prompt}. Style: ${style}. High quality video, professional, engaging.`,
-          num_frames: 120,
-          num_inference_steps: 50,
-        }
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: imagePrompt
+          }
+        ],
+        modalities: ['image', 'text']
       })
     });
 
-    if (!replicateResponse.ok) {
-      const errorText = await replicateResponse.text();
-      console.error('Replicate API error:', errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
       
-      let errorMessage = 'Failed to start video generation';
-      try {
-        const errorJson = JSON.parse(errorText);
-        if (replicateResponse.status === 402) {
-          errorMessage = 'Insufficient Replicate API credits. Please add credits at https://replicate.com/account/billing';
-        } else {
-          errorMessage = errorJson.detail || errorJson.title || errorMessage;
-        }
-      } catch {
-        errorMessage = errorText || errorMessage;
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits in Settings → Workspace → Usage.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
-        { status: replicateResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Failed to generate video: ${errorText}` }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const predictionData = await replicateResponse.json();
-    console.log('Video generation started:', predictionData.id);
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    // Step 2: Wait for completion and poll status
-    let videoUrl = null;
-    let attempts = 0;
-    const maxAttempts = 60; // 5 minutes max
-
-    while (!videoUrl && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-      
-      const statusResponse = await fetch(`https://api.replicate.com/v1/predictions/${predictionData.id}`, {
-        headers: {
-          'Authorization': `Token ${REPLICATE_API_KEY}`,
-        }
-      });
-
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        console.log('Generation status:', statusData.status);
-        
-        if (statusData.status === 'succeeded' && statusData.output) {
-          videoUrl = Array.isArray(statusData.output) ? statusData.output[0] : statusData.output;
-          console.log('Video generated successfully:', videoUrl);
-          break;
-        } else if (statusData.status === 'failed') {
-          throw new Error('Video generation failed');
-        }
-      }
-      
-      attempts++;
+    if (!imageUrl) {
+      throw new Error('No image generated');
     }
 
-    if (!videoUrl) {
-      throw new Error('Video generation timed out');
-    }
+    console.log('Video frame generated successfully');
 
-    // Step 3: Generate voiceover if needed
-    let voiceoverUrl = null;
+    // Generate audio description for voiceover
+    let audioPrompt = null;
     if (music !== 'none') {
-      console.log('Generating AI voiceover...');
-      
-      const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
-      if (ELEVENLABS_API_KEY) {
-        try {
-          const voiceResponse = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-            method: 'POST',
-            headers: {
-              'Accept': 'audio/mpeg',
-              'Content-Type': 'application/json',
-              'xi-api-key': ELEVENLABS_API_KEY,
-            },
-            body: JSON.stringify({
-              text: prompt,
-              model_id: 'eleven_multilingual_v2',
-              voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-              }
-            })
-          });
-
-          if (voiceResponse.ok) {
-            const audioBlob = await voiceResponse.arrayBuffer();
-            console.log('Voiceover generated successfully');
-            // In a real implementation, you'd upload this to storage
-            voiceoverUrl = 'generated_voiceover.mp3';
-          }
-        } catch (voiceError) {
-          console.warn('Voiceover generation failed:', voiceError);
-        }
-      }
+      audioPrompt = `Narration for video: ${prompt}. Style: ${style}. Engaging, clear, professional tone.`;
+      console.log('Audio prompt prepared:', audioPrompt);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        videoUrl,
-        voiceoverUrl,
+        videoUrl: imageUrl, // Using image as video frame
+        audioPrompt,
         generatedAt: new Date().toISOString(),
         prompt,
         style,
