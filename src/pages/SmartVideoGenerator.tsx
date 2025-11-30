@@ -189,44 +189,44 @@ const SmartVideoGenerator = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <MobileHeader title="Smart Video Generator" />
-          <main className="flex-1 p-4 md:p-8 overflow-auto">
-            <div className="max-w-6xl mx-auto space-y-6">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-xl md:text-3xl font-bold truncate">Smart Video Generator</h1>
-                  <p className="text-xs md:text-sm text-muted-foreground truncate">AI-powered scene-based video creation</p>
+                  <h1 className="text-lg sm:text-xl lg:text-3xl font-bold truncate font-mono">Smart Video Generator</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">AI-powered video generation with audio</p>
                 </div>
               </div>
 
-              <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+              <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                 <Card>
-                  <CardHeader className="pb-3 md:pb-6">
-                    <CardTitle className="text-lg md:text-xl">Input</CardTitle>
-                    <CardDescription className="text-xs md:text-sm">Enter a prompt or upload a script to generate scenes</CardDescription>
+                  <CardHeader className="pb-3 sm:pb-6">
+                    <CardTitle className="text-base sm:text-lg lg:text-xl font-mono">Input</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Enter a prompt or upload a script to generate scenes</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4">
                     <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as "prompt" | "script")}>
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="prompt">Prompt</TabsTrigger>
-                        <TabsTrigger value="script">Script</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-2 h-9 sm:h-10">
+                        <TabsTrigger value="prompt" className="text-xs sm:text-sm">Prompt</TabsTrigger>
+                        <TabsTrigger value="script" className="text-xs sm:text-sm">Script</TabsTrigger>
                       </TabsList>
-                      <TabsContent value="prompt" className="space-y-4">
+                      <TabsContent value="prompt" className="space-y-3 sm:space-y-4">
                         <Textarea
-                          placeholder="Describe the video you want to create... (e.g., 'Create a motivational video about morning routines')"
+                          placeholder="Describe the video you want to create..."
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value)}
-                          className="min-h-[200px]"
+                          className="min-h-[150px] sm:min-h-[200px] text-sm"
                         />
                       </TabsContent>
-                      <TabsContent value="script" className="space-y-4">
+                      <TabsContent value="script" className="space-y-3 sm:space-y-4">
                         <Textarea
                           placeholder="Paste your video script here..."
                           value={script}
                           onChange={(e) => setScript(e.target.value)}
-                          className="min-h-[200px]"
+                          className="min-h-[150px] sm:min-h-[200px] text-sm"
                         />
                       </TabsContent>
                     </Tabs>
@@ -234,18 +234,18 @@ const SmartVideoGenerator = () => {
                     <Button
                       onClick={handleGenerateScenes}
                       disabled={isGenerating || (!prompt && !script)}
-                      className="w-full"
+                      className="w-full text-sm sm:text-base"
                       size="lg"
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Generating Scenes...
+                          <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                          <span className="text-xs sm:text-sm">Generating...</span>
                         </>
                       ) : (
                         <>
-                          <Film className="mr-2 h-5 w-5" />
-                          Generate Scenes
+                          <Film className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-xs sm:text-sm">Generate Scenes</span>
                         </>
                       )}
                     </Button>
