@@ -255,26 +255,26 @@ const VideoCloneGenerator = () => {
         <div className="flex-1 flex flex-col min-h-0">
           <MobileHeader title="Video Clone Generator" />
           
-          <main className="flex-1 p-4 lg:p-8 overflow-auto">
-            <div className="max-w-4xl mx-auto space-y-6">
-              <div className="flex items-center space-x-4">
+          <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+            <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleBack}
                   className="text-muted-foreground hover:text-foreground"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Methods
+                  <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="text-xs sm:text-sm">Back</span>
                 </Button>
               </div>
 
               <div className="text-center space-y-2">
-                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center shadow-elegant">
-                  <Video className="w-8 h-8 text-primary-foreground" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full bg-gradient-to-br from-primary via-primary-glow to-accent flex items-center justify-center shadow-elegant">
+                  <Video className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
                 </div>
-                <h1 className="text-3xl font-bold font-mono">Video Clone Generator</h1>
-                <p className="text-muted-foreground text-lg">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-mono px-2">Video Clone Generator</h1>
+                <p className="text-muted-foreground text-sm sm:text-base lg:text-lg px-4">
                   Upload a sample video and create content with the same style
                 </p>
               </div>

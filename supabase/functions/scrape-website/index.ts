@@ -57,9 +57,9 @@ serve(async (req) => {
       );
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      console.error('OPENAI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(
         JSON.stringify({ success: false, error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -81,7 +81,7 @@ serve(async (req) => {
     const htmlContent = await websiteResponse.text();
     console.log(`Fetched ${htmlContent.length} characters from website`);
 
-    // Use OpenAI to extract and analyze content
+    // Use Lovable AI to extract and analyze content
     console.log('Analyzing content with AI...');
     const analysisPrompt = `Analyze this webpage HTML and extract key information for creating a promotional video. Extract:
 1. Product/Service Name (title)
@@ -100,14 +100,14 @@ Return ONLY a valid JSON object with this structure:
   "script": "engaging video script for narration"
 }`;
 
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { 
             role: 'system', 
@@ -115,32 +115,34 @@ Return ONLY a valid JSON object with this structure:
           },
           { role: 'user', content: analysisPrompt }
         ],
-        temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 1000,
+        response_format: { type: "json_object" }
       }),
     });
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error('OpenAI API error:', errorText);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('Lovable AI error:', aiResponse.status, errorText);
       
-      let errorMessage = 'Failed to analyze content with AI';
-      try {
-        const errorData = JSON.parse(errorText);
-        if (errorData.error?.code === 'insufficient_quota') {
-          errorMessage = 'OpenAI API quota exceeded. Please add credits at https://platform.openai.com/account/billing';
-        } else if (errorData.error?.message) {
-          errorMessage = `OpenAI Error: ${errorData.error.message}`;
-        }
-      } catch {
-        // If we can't parse the error, use the default message
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
-      throw new Error(errorMessage);
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ success: false, error: "Payment required. Please add credits to your Lovable AI workspace in Settings → Workspace → Usage." }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      throw new Error(`AI analysis error: ${errorText}`);
     }
 
-    const openaiData = await openaiResponse.json();
-    const extractedData = JSON.parse(openaiData.choices[0].message.content);
+    const aiData = await aiResponse.json();
+    const extractedData = JSON.parse(aiData.choices[0].message.content);
 
     console.log('Content extracted:', extractedData);
 
