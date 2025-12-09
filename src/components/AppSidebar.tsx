@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { 
   FolderOpen, 
   Layout, 
@@ -6,8 +5,7 @@ import {
   Settings, 
   Sparkles,
   ChevronLeft,
-  ChevronRight,
-  Brain
+  ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -26,7 +24,7 @@ import {
 
 const menuItems = [
   { title: "Projects", url: "/dashboard", icon: FolderOpen },
-  { title: "Smart Video", url: "/smart-video", icon: Brain },
+  { title: "Create Video", url: "/create-project", icon: Sparkles },
   { title: "Templates", url: "/templates", icon: Layout },
   { title: "Billing", url: "/billing", icon: CreditCard },
   { title: "Settings", url: "/settings", icon: Settings },
@@ -37,7 +35,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path + '/');
 
   return (
     <Sidebar 

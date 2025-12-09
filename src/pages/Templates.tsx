@@ -1,13 +1,13 @@
 import AppSidebar from "@/components/AppSidebar";
 import MobileHeader from "@/components/MobileHeader";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Play, Clock, Star } from "lucide-react";
+import { Play, Star } from "lucide-react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Templates = () => {
-  // Mock template data
   const templates = [
     {
       id: 1,
@@ -48,6 +48,26 @@ const Templates = () => {
       duration: "1:00",
       rating: 4.6,
       isPopular: false
+    },
+    {
+      id: 5,
+      title: "Corporate Promo",
+      description: "Professional corporate promotional content",
+      thumbnail: "/placeholder.svg",
+      category: "Business",
+      duration: "2:00",
+      rating: 4.5,
+      isPopular: false
+    },
+    {
+      id: 6,
+      title: "Tutorial Guide",
+      description: "Step-by-step tutorial with screen recordings",
+      thumbnail: "/placeholder.svg",
+      category: "Education",
+      duration: "3:00",
+      rating: 4.8,
+      isPopular: true
     }
   ];
 
@@ -60,74 +80,84 @@ const Templates = () => {
         
         <SidebarInset className="flex-1">
           <MobileHeader title="Templates" />
-          <main className="p-4 sm:p-6 lg:p-8">
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2 font-mono">Templates</h1>
-              <p className="text-sm sm:text-base text-muted-foreground font-mono">
+          <main className="p-3 sm:p-6 lg:p-8">
+            {/* Header */}
+            <div className="mb-4 sm:mb-6 lg:mb-8">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 font-mono">Templates</h1>
+              <p className="text-xs sm:text-sm lg:text-base text-muted-foreground font-mono">
                 Choose from our collection of professional video templates
               </p>
             </div>
 
-            {/* Category Filter */}
-            <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={category === "All" ? "default" : "outline"}
-                  size="sm"
-                  className="rounded-2xl font-mono"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
+            {/* Category Filter - Horizontal Scroll on Mobile */}
+            <ScrollArea className="w-full mb-4 sm:mb-6 lg:mb-8">
+              <div className="flex gap-2 pb-2">
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={category === "All" ? "default" : "outline"}
+                    size="sm"
+                    className="rounded-full font-mono text-xs sm:text-sm whitespace-nowrap shrink-0 h-8 sm:h-9 px-3 sm:px-4"
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
-            {/* Templates Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {/* Templates Grid - Responsive */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
-                  className="rounded-2xl hover:shadow-card transition-all duration-300 cursor-pointer group w-full overflow-hidden"
+                  className="rounded-xl sm:rounded-2xl hover:shadow-card transition-all duration-300 cursor-pointer group overflow-hidden"
                 >
-                  <CardHeader className="p-0 relative">
-                    <div className="relative aspect-video bg-muted rounded-t-2xl overflow-hidden w-full">
-                      <img 
-                        src={template.thumbnail} 
-                        alt={template.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <Play className="w-12 h-12 text-white" />
-                      </div>
-                      <div className="absolute top-2 left-2 flex gap-2">
-                        {template.isPopular && (
-                          <Badge className="bg-gradient-primary text-white font-mono">
-                            Popular
-                          </Badge>
-                        )}
-                        <Badge variant="secondary" className="font-mono">
-                          {template.category}
-                        </Badge>
-                      </div>
-                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-mono">
-                        {template.duration}
+                  {/* Thumbnail */}
+                  <div className="relative aspect-video bg-muted overflow-hidden">
+                    <img 
+                      src={template.thumbnail} 
+                      alt={template.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {/* Play Overlay */}
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 flex items-center justify-center">
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-primary ml-0.5" />
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-3 sm:p-4 w-full">
-                    <div className="flex items-center justify-between mb-2 gap-2">
-                      <CardTitle className="text-base sm:text-lg font-semibold font-mono truncate">
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 flex gap-1.5">
+                      {template.isPopular && (
+                        <Badge className="bg-gradient-primary text-white font-mono text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+                          Popular
+                        </Badge>
+                      )}
+                      <Badge variant="secondary" className="font-mono text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
+                        {template.category}
+                      </Badge>
+                    </div>
+                    {/* Duration */}
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-mono">
+                      {template.duration}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1.5 sm:mb-2">
+                      <CardTitle className="text-sm sm:text-base lg:text-lg font-semibold font-mono line-clamp-1">
                         {template.title}
                       </CardTitle>
-                      <div className="flex items-center text-sm text-muted-foreground shrink-0">
-                        <Star className="w-4 h-4 mr-1 fill-current text-accent" />
+                      <div className="flex items-center text-xs sm:text-sm text-muted-foreground shrink-0">
+                        <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5 fill-current text-accent" />
                         {template.rating}
                       </div>
                     </div>
-                    <CardDescription className="text-xs sm:text-sm mb-3 sm:mb-4 font-mono line-clamp-2">
+                    <CardDescription className="text-[11px] sm:text-xs lg:text-sm mb-2.5 sm:mb-3 font-mono line-clamp-2">
                       {template.description}
                     </CardDescription>
-                    <Button className="w-full rounded-2xl font-mono text-xs sm:text-sm" size="sm">
+                    <Button className="w-full rounded-full font-mono text-xs sm:text-sm h-8 sm:h-9 bg-gradient-primary hover:opacity-90">
                       Use Template
                     </Button>
                   </CardContent>
