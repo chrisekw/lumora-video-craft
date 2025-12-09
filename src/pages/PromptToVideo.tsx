@@ -406,14 +406,27 @@ const PromptToVideo = () => {
                 /* Video Preview */
                 <Card className="shadow-elegant">
                   <CardHeader>
-                    <CardTitle className="font-mono flex items-center">
-                      <Play className="w-5 h-5 mr-2" />
+                    <CardTitle className="font-mono flex items-center text-sm sm:text-base">
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Generated Video Preview
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="w-full h-64 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                      <Play className="w-16 h-16 text-primary" />
+                  <CardContent className="space-y-4 sm:space-y-6">
+                    <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+                      {generatedVideo ? (
+                        <video 
+                          src={generatedVideo} 
+                          controls 
+                          className="w-full h-full object-contain"
+                          poster="/placeholder.svg"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+                          <Play className="w-12 h-12 sm:w-16 sm:h-16 text-primary" />
+                        </div>
+                      )}
                     </div>
                     
                     <div className="bg-card border rounded-lg p-4">
